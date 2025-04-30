@@ -284,7 +284,7 @@ function RoomsList() {
                     borderRadius: "50%",
                     padding: "8px",
                     cursor: "default",
-                    color: "#000000",
+                    color: "#F5E8C7",
                     fontSize: "20px"
                   }}
                 >
