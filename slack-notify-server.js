@@ -1,6 +1,7 @@
 import express from 'express';
 import fetch from 'node-fetch';
 import cors from 'cors';
+import { config } from './config.js';
 
 const app = express();
 app.use(express.json());
@@ -12,13 +13,16 @@ app.use(cors({
   credentials: true
 }));
 
-const SLACK_WEBHOOK_URL = 'https://hooks.slack.com/services/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';
-
 app.post('/api/notify-slack', async (req, res) => {
+  console.log('Received notification request:', req.body);
+  console.log('Request headers:', req.headers);
   const { itemName, roomName, quantity, minQuantity } = req.body;
+  
   if (!itemName || !roomName || quantity === undefined) {
+    console.log('Missing required fields:', { itemName, roomName, quantity });
     return res.status(400).json({ error: 'Missing itemName, roomName, or quantity' });
   }
+
   const message = {
     text: `:rotating_light: *LOW STOCK ALERT*\n\n` +
           `<@U08P9GAUV6Y> <@U08P8G8S6TD>\n\n` +
@@ -26,19 +30,32 @@ app.post('/api/notify-slack', async (req, res) => {
           `*Item:* ${itemName}\n` +
           `*Current Quantity:* ${quantity}/${minQuantity}`
   };
+
+  console.log('Sending message to Slack:', message);
+  
   try {
-    await fetch(SLACK_WEBHOOK_URL, {
+    const response = await fetch(config.slackWebhookUrl, {
       method: 'POST',
       body: JSON.stringify(message),
       headers: { 'Content-Type': 'application/json' }
     });
+
+    console.log('Slack response status:', response.status);
+    if (!response.ok) {
+      throw new Error(`Slack API returned ${response.status}`);
+    }
+
     res.sendStatus(200);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to send Slack notification' });
+    console.error('Failed to send Slack notification:', err);
+    res.status(500).json({ 
+      error: 'Failed to send Slack notification',
+      details: err.message
+    });
   }
 });
 
 const PORT = 4000;
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Slack notify server running on port ${PORT}`);
 }); 

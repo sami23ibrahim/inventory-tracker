@@ -1,7 +1,7 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import RoomsList from "./RoomsList";
-import RoomDetail from "./RoomDetail"; // (we will create it next)
+import RoomDetail from "./RoomDetail";
 
 function App() {
   return (

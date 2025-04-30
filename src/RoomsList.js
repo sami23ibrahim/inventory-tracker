@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { db } from "./firebase";
-import { supabase } from "./supabase";
-import { collection, getDocs, addDoc, deleteDoc, doc, updateDoc } from "firebase/firestore";
 import { Link } from "react-router-dom";
+import { db } from "./firebase";
+import { collection, getDocs, addDoc, deleteDoc, doc, updateDoc } from "firebase/firestore";
+import { supabase } from "./supabase";
 import Modal from "react-modal";
 import { FaCog, FaLock } from "react-icons/fa";
 

@@ -19,7 +19,10 @@ async function notifySlack(itemName, roomName, quantity, minQuantity) {
   // Skip notifications on mobile devices
   if (isMobileDevice) return;
 
-  const serverUrl = 'http://192.168.100.31:4000';
+  const serverUrl = window.location.hostname === 'localhost' 
+    ? 'http://localhost:4000'
+    : 'http://192.168.100.31:4000';
+
   try {
     await fetch(`${serverUrl}/api/notify-slack`, {
       method: 'POST',
