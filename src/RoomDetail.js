@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { db } from "./firebase";
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, getDoc } from "firebase/firestore";
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, getDoc, onSnapshot, runTransaction } from "firebase/firestore";
 import { supabase } from "./supabase";
 import Modal from "react-modal";
 import { FaCog, FaInfoCircle } from "react-icons/fa";
@@ -15,30 +15,12 @@ const lastKnownQuantities = new Map();
 
 const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-async function notifySlack(itemName, roomName, quantity, minQuantity) {
-  // Skip notifications on mobile devices
-  if (isMobileDevice) return;
-
-  const serverUrl = window.location.hostname === 'localhost' 
-    ? 'http://localhost:4000'
-    : 'http://192.168.100.31:4000';
-
-  try {
-    await fetch(`${serverUrl}/api/notify-slack`, {
-      method: 'POST',
-      body: JSON.stringify({ itemName, roomName, quantity, minQuantity }),
-      headers: { 'Content-Type': 'application/json' }
-    });
-  } catch (error) {
-    console.error('Failed to send Slack notification:', error);
-    // Don't throw the error to prevent app crashes
-  }
-}
-
 function RoomDetail() {
   const { roomId } = useParams();
   const navigate = useNavigate();
   const [items, setItems] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredItems, setFilteredItems] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newItemName, setNewItemName] = useState("");
   const [newItemImage, setNewItemImage] = useState(null);
@@ -46,6 +28,10 @@ function RoomDetail() {
   const [editingItemId, setEditingItemId] = useState(null);
   const [editedQuantity, setEditedQuantity] = useState(0);
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [lastQuantity, setLastQuantity] = useState(null);
+  const [lastItemId, setLastItemId] = useState(null);
+  const [showUndo, setShowUndo] = useState(false);
+  const [showSearchResults, setShowSearchResults] = useState(false);
 
   // Edit Item Modal
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -77,8 +63,24 @@ function RoomDetail() {
   // Add a default image URL
   const DEFAULT_IMAGE_URL = "https://placehold.co/300x150?text=No+Image";
 
+  // Add webhook status state
+  const [webhookHealth, setWebhookHealth] = useState({ status: 'unknown', error: null });
+
+  // Add click outside handler
   useEffect(() => {
-    fetchItems();
+    const handleClickOutside = (event) => {
+      if (openMenuId && !event.target.closest('.item-menu')) {
+        setOpenMenuId(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [openMenuId]);
+
+  useEffect(() => {
     fetchRoomName();
   }, []);
 
@@ -119,12 +121,86 @@ function RoomDetail() {
     });
   }, [items, roomName]);
 
-  const fetchItems = async () => {
-    const itemsCollection = collection(db, "rooms", roomId, "items");
-    const itemSnapshot = await getDocs(itemsCollection);
-    const itemList = itemSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    setItems(itemList);
+  // Restore the useEffect for periodic health checks
+  useEffect(() => {
+    // Initial check
+    checkWebhookHealth();
+    
+    // Check every 5 minutes
+    const interval = setInterval(checkWebhookHealth, 5 * 60 * 1000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    // Set up real-time listener for items
+    const itemsRef = collection(db, "rooms", roomId, "items");
+    const unsubscribe = onSnapshot(itemsRef, (snapshot) => {
+      const itemsList = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setItems(itemsList);
+    });
+
+    // Cleanup listener when component unmounts
+    return () => unsubscribe();
+  }, [roomId]);
+
+  // Add click outside handler for search results
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      const searchContainer = document.querySelector('.search-container');
+      if (searchContainer && !searchContainer.contains(event.target)) {
+        setShowSearchResults(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Update search functionality
+  useEffect(() => {
+    if (searchQuery.trim() === "") {
+      setFilteredItems(items);
+      setShowSearchResults(false);
+      return;
+    }
+    const lowerQuery = searchQuery.toLowerCase();
+    const filtered = items.filter(item => 
+      item.name.toLowerCase().includes(lowerQuery)
+    );
+    setFilteredItems(filtered);
+    setShowSearchResults(true);
+  }, [searchQuery, items]);
+
+  const scrollToItem = (itemId) => {
+    const element = document.getElementById(`item-${itemId}`);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Add highlight effect
+      element.style.animation = 'highlight 1s';
+      setTimeout(() => {
+        element.style.animation = '';
+      }, 1000);
+    }
   };
+
+  // Add CSS for highlight animation
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes highlight {
+        0% { background-color: rgba(255, 255, 255, 0.2); }
+        100% { background-color: transparent; }
+      }
+    `;
+    document.head.appendChild(style);
+    return () => document.head.removeChild(style);
+  }, []);
 
   const fetchRoomName = async () => {
     const roomRef = doc(db, "rooms", roomId);
@@ -212,14 +288,88 @@ function RoomDetail() {
     setNewItemQuantity(0);
     setNewItemMinEnabled(false);
     setNewItemMinValue(1);
-    fetchItems();
   };
 
   const updateQuantity = async (itemId, newQuantity) => {
-    const itemRef = doc(db, "rooms", roomId, "items", itemId);
-    await updateDoc(itemRef, { quantity: newQuantity });
-    fetchItems();
+    try {
+      // Prevent negative quantities
+      if (newQuantity < 0) {
+        alert("Quantity cannot be negative");
+        return;
+      }
+      
+      // Store previous quantity for undo
+      const item = items.find(item => item.id === itemId);
+      if (item) {
+        setLastQuantity(item.quantity);
+        setLastItemId(itemId);
+        setShowUndo(true);
+        // Clear previous timeout if it exists
+        if (window.undoTimeout) {
+          clearTimeout(window.undoTimeout);
+        }
+        // Hide undo button after 5 seconds
+        window.undoTimeout = setTimeout(() => setShowUndo(false), 5000);
+      }
+
+      const itemRef = doc(db, "rooms", roomId, "items", itemId);
+      
+      // Use transaction to prevent conflicts
+      await runTransaction(db, async (transaction) => {
+        const itemDoc = await transaction.get(itemRef);
+        if (!itemDoc.exists()) {
+          throw new Error("Item does not exist!");
+        }
+        
+        const currentQuantity = itemDoc.data().quantity;
+        // If the quantity has changed since we started the update, 
+        // we'll use the new quantity as the base for our update
+        const baseQuantity = currentQuantity !== item.quantity ? currentQuantity : item.quantity;
+        const finalQuantity = baseQuantity + (newQuantity - item.quantity);
+        
+        transaction.update(itemRef, { quantity: finalQuantity });
+      });
+      
+      // Update local state after successful transaction
+      setItems(prevItems => 
+        prevItems.map(item => 
+          item.id === itemId ? { ...item, quantity: newQuantity } : item
+        )
+      );
+    } catch (error) {
+      console.error('Error updating quantity:', error);
+      alert('Failed to update quantity. Please try again.');
+    }
   };
+
+  const handleUndo = async () => {
+    try {
+      if (lastItemId && lastQuantity !== null) {
+        const itemRef = doc(db, "rooms", roomId, "items", lastItemId);
+        await updateDoc(itemRef, { quantity: lastQuantity });
+        setShowUndo(false);
+        
+        // Update local state instead of fetching
+        setItems(prevItems => 
+          prevItems.map(item => 
+            item.id === lastItemId ? { ...item, quantity: lastQuantity } : item
+          )
+        );
+      }
+    } catch (error) {
+      console.error('Error undoing quantity change:', error);
+      alert('Failed to undo change. Please try again.');
+    }
+  };
+
+  // Cleanup timeout on component unmount
+  useEffect(() => {
+    return () => {
+      if (window.undoTimeout) {
+        clearTimeout(window.undoTimeout);
+      }
+    };
+  }, []);
 
   const startEditingQuantity = (itemId) => {
     setEditingItemId(itemId);
@@ -228,6 +378,15 @@ function RoomDetail() {
   };
 
   const saveEditedQuantity = async (itemId) => {
+    // Validate edited quantity
+    if (editedQuantity < 0) {
+      alert("Quantity cannot be negative");
+      return;
+    }
+    if (isNaN(editedQuantity)) {
+      alert("Please enter a valid number");
+      return;
+    }
     await updateQuantity(itemId, editedQuantity);
     setEditingItemId(null);
   };
@@ -253,7 +412,6 @@ function RoomDetail() {
 
     const itemRef = doc(db, "rooms", roomId, "items", itemId);
     await deleteDoc(itemRef);
-    fetchItems();
   };
 
   const openEditModal = (item) => {
@@ -322,7 +480,6 @@ function RoomDetail() {
     setEditItemId(null);
     setEditItemMinEnabled(false);
     setEditItemMinValue(1);
-    fetchItems();
   };
 
   const toggleMenu = (id) => {
@@ -344,7 +501,74 @@ function RoomDetail() {
     setIsInfoModalOpen(false);
     setInfoItemId(null);
     setInfoNote("");
-    fetchItems();
+  };
+
+  // Update the checkWebhookHealth function
+  const checkWebhookHealth = async () => {
+    try {
+      const response = await fetch('http://192.168.100.31:4000/api/health');
+      const data = await response.json();
+      
+      setWebhookHealth({
+        status: data.status === 'healthy' ? 'healthy' : 'unhealthy',
+        error: data.lastError
+      });
+    } catch (error) {
+      setWebhookHealth({
+        status: 'unhealthy',
+        error: 'Failed to connect to notification server'
+      });
+      console.error('Failed to check webhook health:', error);
+    }
+  };
+
+  // Update notifySlack to use webhook health status
+  const notifySlack = async (itemName, roomName, quantity, minQuantity) => {
+    if (isMobileDevice) {
+      console.log('Skipping Slack notification on mobile device');
+      return;
+    }
+
+    if (webhookHealth.status === 'unhealthy') {
+      console.error('Skipping notification - Slack webhook is not working:', webhookHealth.error);
+      return;
+    }
+
+    try {
+      const serverUrl = 'http://192.168.100.31:4000/api/notify-slack';
+      console.log('Sending notification to:', serverUrl);
+      
+      const response = await fetch(serverUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          itemName,
+          roomName,
+          quantity,
+          minQuantity
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Slack notification failed:', errorData);
+        
+        if (response.status === 503) {
+          setWebhookHealth({
+            status: 'unhealthy',
+            error: errorData.details
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Failed to send Slack notification:', error);
+      setWebhookHealth({
+        status: 'unhealthy',
+        error: 'Failed to send notification'
+      });
+    }
   };
 
   return (
@@ -353,6 +577,183 @@ function RoomDetail() {
       minHeight: "100vh",
       background: "#181818"
     }}>
+      {isPinVerified && (
+        <>
+          {/* Search Bar and Home Button Container */}
+          <div style={{
+            position: "absolute",
+            top: "20px",
+            left: "20px",
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+            zIndex: 200
+          }}>
+            {/* Home Button */}
+            <button
+              onClick={() => navigate("/")}
+              style={{
+                background: "transparent",
+                color: "#F5E8C7",
+                border: "none",
+                borderRadius: "50%",
+                width: "50px",
+                height: "50px",
+                fontSize: "32px",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: 0,
+                WebkitTapHighlightColor: "transparent",
+                WebkitTouchCallout: "none",
+                WebkitUserSelect: "none",
+                touchAction: "manipulation"
+              }}
+              title="Home"
+            >
+              <FiHome />
+            </button>
+
+            {/* Search Bar */}
+            <div className="search-container" style={{ position: "relative" }}>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setShowSearchResults(true)}
+                placeholder="Search items..."
+                style={{
+                  width: "200px",
+                  padding: "8px 12px",
+                  borderRadius: "20px",
+                  border: "1px solid #fff",
+                  backgroundColor: "#232323",
+                  color: "#F5E8C7",
+                  fontSize: "14px",
+                  outline: "none"
+                }}
+              />
+              {showSearchResults && searchQuery && (
+                <div style={{
+                  position: "absolute",
+                  top: "100%",
+                  left: 0,
+                  width: "250px",
+                  maxHeight: "300px",
+                  overflowY: "auto",
+                  background: "#232323",
+                  border: "1px solid #fff",
+                  borderRadius: "8px",
+                  padding: "10px",
+                  marginTop: "10px",
+                  zIndex: 201
+                }}>
+                  {filteredItems.length === 0 ? (
+                    <div style={{
+                      padding: "8px",
+                      color: "#F5E8C7",
+                      textAlign: "center"
+                    }}>
+                      No items found matching your search.
+                    </div>
+                  ) : (
+                    filteredItems.map(item => (
+                      <div
+                        key={item.id}
+                        onClick={() => {
+                          scrollToItem(item.id);
+                          setShowSearchResults(false);
+                        }}
+                        style={{
+                          padding: "8px",
+                          cursor: "pointer",
+                          color: "#F5E8C7",
+                          borderBottom: "1px solid rgba(255,255,255,0.1)",
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center"
+                        }}
+                      >
+                        <span>
+                          {item.name.split(searchQuery).map((part, i, arr) => (
+                            <span key={i}>
+                              {part}
+                              {i < arr.length - 1 && (
+                                <span style={{ backgroundColor: "rgba(255,255,255,0.2)" }}>
+                                  {searchQuery}
+                                </span>
+                              )}
+                            </span>
+                          ))}
+                        </span>
+                        <span style={{ color: "#888" }}>→</span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Status Indicator */}
+          <div style={{
+            position: "fixed",
+            top: "20px",
+            right: "20px",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            background: "#232323",
+            padding: "8px 12px",
+            borderRadius: "8px",
+            border: "1px solid #fff",
+            zIndex: 1000,
+            cursor: "pointer"
+          }} onClick={checkWebhookHealth}>
+            <div style={{
+              width: "10px",
+              height: "10px",
+              borderRadius: "50%",
+              background: webhookHealth.status === 'healthy' 
+                ? '#4CAF50'  // Green for healthy
+                : webhookHealth.status === 'unhealthy' 
+                  ? '#f44336'  // Red for unhealthy
+                  : '#FFA726'  // Orange for unknown
+            }} />
+            <span style={{ 
+              color: "#F5E8C7",
+              fontSize: "14px"
+            }}>
+              {webhookHealth.status === 'healthy' 
+                ? 'Notifications Active'
+                : webhookHealth.status === 'unhealthy'
+                  ? 'Notification Issues'
+                  : 'Checking Status...'}
+            </span>
+          </div>
+          
+          {/* Show error tooltip if there's an error */}
+          {webhookHealth.error && webhookHealth.status === 'unhealthy' && (
+            <div style={{
+              position: "fixed",
+              top: "70px",
+              right: "20px",
+              background: "#232323",
+              padding: "8px 12px",
+              borderRadius: "8px",
+              border: "1px solid #f44336",
+              color: "#F5E8C7",
+              fontSize: "14px",
+              maxWidth: "250px",
+              zIndex: 1000
+            }}>
+              {webhookHealth.error}
+            </div>
+          )}
+        </>
+      )}
+
       {/* PIN Verification Modal */}
       <Modal
         isOpen={isPinModalOpen}
@@ -520,34 +921,6 @@ function RoomDetail() {
       {/* Only show room content if PIN is verified or no PIN exists */}
       {isPinVerified && (
         <React.Fragment>
-          <button
-            onClick={() => navigate("/")}
-            style={{
-              position: "absolute",
-              top: "20px",
-              left: "20px",
-              background: "transparent",
-              color: "#F5E8C7",
-              border: "none",
-              borderRadius: "50%",
-              width: "50px",
-              height: "50px",
-              fontSize: "32px",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              zIndex: 200,
-              padding: 0,
-              WebkitTapHighlightColor: "transparent", // Remove tap highlight on mobile
-              WebkitTouchCallout: "none", // Disable callout on long press
-              WebkitUserSelect: "none", // Disable text selection
-              touchAction: "manipulation" // Optimize for touch
-            }}
-            title="Home"
-          >
-            <FiHome />
-          </button>
           <h1 style={{ fontSize: "38px", marginBottom: "20px", color: "#F5E8C7", textAlign: "center", paddingTop: "60px" }}>{roomName}</h1>
           <button 
             onClick={() => setIsModalOpen(true)}
@@ -568,32 +941,72 @@ function RoomDetail() {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              padding: 0
+              padding: 0,
+              zIndex: 3000
             }}
           >
             +
           </button>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "20px" }}>
-            {items.length === 0 ? (
-              <div style={{ gridColumn: "1/-1", textAlign: "center", color: "#F5E8C7", fontSize: "22px", marginTop: "40px" }}>
+          {/* Add undo button */}
+          {showUndo && (
+            <button
+              onClick={handleUndo}
+              style={{
+                position: "fixed",
+                bottom: "100px",
+                right: "30px",
+                background: "#232323",
+                color: "#F5E8C7",
+                border: "1px solid #fff",
+                borderRadius: "10px",
+                padding: "10px 20px",
+                fontSize: "16px",
+                cursor: "pointer",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.7)",
+                zIndex: 1000
+              }}
+            >
+              Undo Last Change
+            </button>
+          )}
+
+          <div style={{ 
+            display: "grid", 
+            gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", 
+            gap: "20px",
+            padding: "20px"
+          }}>
+            {(!searchQuery && items.length === 0) ? (
+              <div style={{ 
+                gridColumn: "1/-1", 
+                textAlign: "center", 
+                color: "#F5E8C7", 
+                fontSize: "22px", 
+                marginTop: "40px",
+                padding: "20px"
+              }}>
                 No items in this room yet.<br />
                 Click the <span style={{fontWeight:'bold', fontSize:'28px'}}>+</span> button below to add your first item!
               </div>
             ) : (
-              items.map(item => (
-                <div key={item.id} style={{
-                  background: (item.minQuantity !== undefined && item.minQuantity !== null && item.quantity < item.minQuantity)
-                    ? "#ff4d4f" // red
-                    : "#232323",
-                  border: '1px solid #fff',
-                  borderRadius: "12px",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.7)",
-                  overflow: "hidden",
-                  position: "relative",
-                  padding: "20px",
-                  textAlign: "center"
-                }}>
+              (searchQuery && filteredItems.length > 0 ? filteredItems : items).map(item => (
+                <div 
+                  key={item.id} 
+                  id={`item-${item.id}`}
+                  style={{
+                    background: (item.minQuantity !== undefined && item.minQuantity !== null && item.quantity < item.minQuantity)
+                      ? "#ff4d4f"
+                      : "#232323",
+                    border: '1px solid #fff',
+                    borderRadius: "12px",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.7)",
+                    overflow: "hidden",
+                    position: "relative",
+                    padding: "20px",
+                    textAlign: "center"
+                  }}
+                >
                   <div style={{ position: "relative" }}>
                     <img
                       src={item.imageUrl || DEFAULT_IMAGE_URL}
@@ -615,10 +1028,15 @@ function RoomDetail() {
                         background: "transparent",
                         border: "none",
                         borderRadius: "50%",
-                        padding: "8px",
+                        padding: "12px",
                         cursor: "pointer",
-                        color: item.note ? "#FFD700" : "#F5E8C7", // gold if note exists
-                        fontSize: "20px"
+                        color: item.note ? "#FFD700" : "#F5E8C7",
+                        fontSize: "24px",
+                        width: "48px",
+                        height: "48px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center"
                       }}
                       title={item.note ? "View/Edit Note" : "Add Note"}
                     >
@@ -633,19 +1051,24 @@ function RoomDetail() {
                         background: "transparent",
                         border: "none",
                         borderRadius: "50%",
-                        padding: "8px",
+                        padding: "12px",
                         cursor: "pointer",
                         color: "#F5E8C7",
-                        fontSize: "20px"
+                        fontSize: "24px",
+                        width: "48px",
+                        height: "48px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center"
                       }}
                     >
                       <FaCog />
                     </button>
 
                     {openMenuId === item.id && (
-                      <div style={{
+                      <div className="item-menu" style={{
                         position: "absolute",
-                        top: "45px",
+                        top: "60px",
                         right: "10px",
                         background: "#232323",
                         boxShadow: "0 2px 6px rgba(0,0,0,0.7)",
@@ -660,13 +1083,16 @@ function RoomDetail() {
                           }}
                           style={{
                             width: "100%",
-                            padding: "10px",
+                            padding: "12px 16px",
                             background: "#232323",
                             color: "#F5E8C7",
                             fontSize: '18px',
                             border: "none",
                             textAlign: "left",
-                            cursor: "pointer"
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px"
                           }}
                         >
                           ✏️ Edit
@@ -678,13 +1104,16 @@ function RoomDetail() {
                           }}
                           style={{
                             width: "100%",
-                            padding: "10px",
+                            padding: "12px 16px",
                             background: "#232323",
                             color: "#F5E8C7",
                             fontSize: '18px',
                             border: "none",
                             textAlign: "left",
-                            cursor: "pointer"
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px"
                           }}
                         >
                           🗑️ Delete
@@ -705,19 +1134,23 @@ function RoomDetail() {
                     display: "flex", 
                     justifyContent: "center", 
                     alignItems: "center",
-                    marginBottom: "10px"
+                    marginBottom: "10px",
+                    gap: "10px"
                   }}>
                     <button 
                       onClick={() => updateQuantity(item.id, item.quantity - 1)}
                       style={{
-                        background: "transparent",color:"#F5E8C7",
+                        background: "transparent",
+                        color: "#F5E8C7",
                         border: "none",
                         borderRadius: "50%",
-                        width: "30px",
-                        height: "30px",
-                        fontSize: "32px",
+                        width: "36px",
+                        height: "36px",
+                        fontSize: "28px",
                         cursor: "pointer",
-                        marginRight: "10px"
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center"
                       }}
                     >
                       -
@@ -727,7 +1160,11 @@ function RoomDetail() {
                         margin: "0 10px", 
                         cursor: "pointer",
                         color: "#F5E8C7",
-                        fontSize: "18px"
+                        fontSize: "18px",
+                        minWidth: "40px",
+                        padding: "4px 8px",
+                        background: "rgba(255, 255, 255, 0.1)",
+                        borderRadius: "6px"
                       }}
                       onClick={() => startEditingQuantity(item.id)}
                     >
@@ -739,11 +1176,14 @@ function RoomDetail() {
                           onBlur={() => saveEditedQuantity(item.id)}
                           autoFocus
                           style={{ 
-                            width: "50px",
+                            width: "100%",
                             textAlign: "center",
                             border: "none",
-                            borderRadius: "5px",
-                            padding: "5px"
+                            borderRadius: "6px",
+                            padding: "4px",
+                            fontSize: "18px",
+                            background: "transparent",
+                            color: "#F5E8C7"
                           }}
                         />
                       ) : (
@@ -753,14 +1193,17 @@ function RoomDetail() {
                     <button 
                       onClick={() => updateQuantity(item.id, item.quantity + 1)}
                       style={{
-                        background: "transparent",color:"#F5E8C7",
+                        background: "transparent",
+                        color: "#F5E8C7",
                         border: "none",
                         borderRadius: "50%",
-                        width: "30px",
-                        height: "30px",
+                        width: "36px",
+                        height: "36px",
                         fontSize: "28px",
                         cursor: "pointer",
-                        marginLeft: "10px"
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center"
                       }}
                     >
                       +

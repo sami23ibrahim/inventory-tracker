@@ -1,25 +1,48 @@
-import express from 'express';
-import fetch from 'node-fetch';
-import cors from 'cors';
-import { config } from './config.js';
-
+require('dotenv').config();
+const express = require('express');
 const app = express();
+const fetch = require('node-fetch');
+
 app.use(express.json());
 
-// Configure CORS to allow requests from your local network
-app.use(cors({
-  origin: ['http://localhost:3000', 'http://192.168.100.31:3000'],
-  methods: ['POST'],
-  credentials: true
-}));
+const SLACK_WEBHOOK_URL = process.env.SLACK_WEBHOOK_URL;
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000; // 1 second
+
+if (!SLACK_WEBHOOK_URL) {
+  console.error('Error: SLACK_WEBHOOK_URL environment variable is not set');
+  process.exit(1);
+}
+
+async function sendSlackMessage(message, retryCount = 0) {
+  try {
+    const response = await fetch(SLACK_WEBHOOK_URL, {
+      method: 'POST',
+      body: JSON.stringify(message),
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return true;
+  } catch (error) {
+    console.error(`Attempt ${retryCount + 1} failed:`, error);
+    
+    if (retryCount < MAX_RETRIES) {
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * (retryCount + 1)));
+      return sendSlackMessage(message, retryCount + 1);
+    }
+    
+    return false;
+  }
+}
 
 app.post('/api/notify-slack', async (req, res) => {
-  console.log('Received notification request:', req.body);
-  console.log('Request headers:', req.headers);
   const { itemName, roomName, quantity, minQuantity } = req.body;
   
   if (!itemName || !roomName || quantity === undefined) {
-    console.log('Missing required fields:', { itemName, roomName, quantity });
     return res.status(400).json({ error: 'Missing itemName, roomName, or quantity' });
   }
 
@@ -31,31 +54,16 @@ app.post('/api/notify-slack', async (req, res) => {
           `*Current Quantity:* ${quantity}/${minQuantity}`
   };
 
-  console.log('Sending message to Slack:', message);
+  const success = await sendSlackMessage(message);
   
-  try {
-    const response = await fetch(config.slackWebhookUrl, {
-      method: 'POST',
-      body: JSON.stringify(message),
-      headers: { 'Content-Type': 'application/json' }
-    });
-
-    console.log('Slack response status:', response.status);
-    if (!response.ok) {
-      throw new Error(`Slack API returned ${response.status}`);
-    }
-
+  if (success) {
     res.sendStatus(200);
-  } catch (err) {
-    console.error('Failed to send Slack notification:', err);
-    res.status(500).json({ 
-      error: 'Failed to send Slack notification',
-      details: err.message
-    });
+  } else {
+    res.status(500).json({ error: 'Failed to send Slack notification after multiple retries' });
   }
 });
 
-const PORT = 4000;
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Slack notify server running on port ${PORT}`);
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => {
+  console.log(`Slack notification server running on port ${PORT}`);
 }); 

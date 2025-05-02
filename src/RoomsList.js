@@ -35,6 +35,20 @@ function RoomsList() {
   const [reportItems, setReportItems] = useState([]);
   const [reportRoomName, setReportRoomName] = useState("");
 
+  // Add click outside handler
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (openMenuId && !event.target.closest('.room-menu')) {
+        setOpenMenuId(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [openMenuId]);
+
   useEffect(() => {
     fetchRoomsAndStock();
   }, []);
@@ -300,19 +314,24 @@ function RoomsList() {
                   background: "transparent",
                   border: "none",
                   borderRadius: "50%",
-                  padding: "8px",
+                  padding: "12px",
                   cursor: "pointer",
                   color: "#F5E8C7",
-                  fontSize: "20px"
+                  fontSize: "24px",
+                  width: "48px",
+                  height: "48px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center"
                 }}
               >
                 <FaCog />
               </button>
             </div>
             {openMenuId === room.id && (
-              <div style={{
+              <div className="room-menu" style={{
                 position: "absolute",
-                top: "45px",
+                top: "60px",
                 right: "10px",
                 background: "#232323",
                 boxShadow: "0 2px 6px rgba(0,0,0,0.7)",
