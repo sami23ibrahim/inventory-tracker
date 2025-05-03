@@ -67,24 +67,10 @@ function RoomDetail() {
 
   const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-  // Add click outside handler
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (openMenuId && !event.target.closest('.item-menu')) {
-        setOpenMenuId(null);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [openMenuId]);
-
   // Use custom hook for webhook health (move above notifySlack)
   const { webhookHealth, checkWebhookHealth } = useWebhookHealth();
 
-  // Use custom hook for PIN logic and room name
+  // Use custom hook for PIN logic and room name (move above useEffect)
   const {
     roomName,
     isPinModalOpen,
