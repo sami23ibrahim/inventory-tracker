@@ -147,6 +147,8 @@ function RoomDetail() {
     }
   }, [isMobileDevice, webhookHealth, checkWebhookHealth]);
 
+  // fetchRoomName is stable and wrapped in useCallback in the custom hook
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchRoomName();
   }, [fetchRoomName]);
