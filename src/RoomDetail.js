@@ -134,37 +134,6 @@ function RoomDetail() {
     }
   }, [isMobileDevice, webhookHealth, checkWebhookHealth]);
 
-  // fetchRoomName is stable and wrapped in useCallback in the custom hook
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    fetchRoomName();
-  }, [fetchRoomName]);
-
-  useEffect(() => {
-    items.forEach(item => {
-      const lastQuantity = lastKnownQuantities.current.get(item.id);
-      const lastNotified = lastNotifiedQuantity.current.get(item.id);
-      const isBelowMinimum = item.minQuantity !== undefined &&
-                             item.minQuantity !== null &&
-                             item.quantity < item.minQuantity;
-      const wasAboveMinimum = lastQuantity !== undefined && 
-                            lastQuantity >= item.minQuantity;
-      const isDecreasing = lastQuantity !== undefined && 
-                         item.quantity < lastQuantity;
-
-      if (
-        isBelowMinimum &&
-        (wasAboveMinimum || isDecreasing) && // Notify if crossing below min OR decreasing while below min
-        item.quantity !== lastNotified // Only notify if not already notified for this quantity
-      ) {
-        notifySlack(item.name, roomName, item.quantity, item.minQuantity);
-        lastNotifiedQuantity.current.set(item.id, item.quantity);
-      }
-
-      lastKnownQuantities.current.set(item.id, item.quantity);
-    });
-  }, [items, roomName, notifySlack]);
-
   // Use custom hook for search/filter logic
   const {
     searchQuery,
@@ -198,6 +167,38 @@ function RoomDetail() {
     document.head.appendChild(style);
     return () => document.head.removeChild(style);
   }, []);
+
+  // --- Move these two useEffect hooks to the very end, just before return ---
+  // fetchRoomName is stable and wrapped in useCallback in the custom hook
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    fetchRoomName();
+  }, [fetchRoomName]);
+
+  useEffect(() => {
+    items.forEach(item => {
+      const lastQuantity = lastKnownQuantities.current.get(item.id);
+      const lastNotified = lastNotifiedQuantity.current.get(item.id);
+      const isBelowMinimum = item.minQuantity !== undefined &&
+                             item.minQuantity !== null &&
+                             item.quantity < item.minQuantity;
+      const wasAboveMinimum = lastQuantity !== undefined && 
+                            lastQuantity >= item.minQuantity;
+      const isDecreasing = lastQuantity !== undefined && 
+                         item.quantity < lastQuantity;
+
+      if (
+        isBelowMinimum &&
+        (wasAboveMinimum || isDecreasing) && // Notify if crossing below min OR decreasing while below min
+        item.quantity !== lastNotified // Only notify if not already notified for this quantity
+      ) {
+        notifySlack(item.name, roomName, item.quantity, item.minQuantity);
+        lastNotifiedQuantity.current.set(item.id, item.quantity);
+      }
+
+      lastKnownQuantities.current.set(item.id, item.quantity);
+    });
+  }, [items, roomName, notifySlack]);
 
   const startEditingQuantity = (itemId) => {
     setEditingItemId(itemId);
