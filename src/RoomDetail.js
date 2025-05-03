@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { db } from "./firebase";
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, getDoc, onSnapshot, runTransaction } from "firebase/firestore";
@@ -8,12 +8,6 @@ import { FaCog, FaInfoCircle } from "react-icons/fa";
 import { FiHome } from "react-icons/fi";
 
 Modal.setAppElement('#root');
-
-// Slack notification tracking
-const notifiedItems = new Set();
-const lastKnownQuantities = new Map();
-
-const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
 function RoomDetail() {
   const { roomId } = useParams();
@@ -66,6 +60,12 @@ function RoomDetail() {
   // Add webhook status state
   const [webhookHealth, setWebhookHealth] = useState({ status: 'unknown', error: null });
 
+  const notifiedItems = useRef(new Set());
+  const lastKnownQuantities = useRef(new Map());
+  const lastNotifiedQuantity = useRef(new Map());
+
+  const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
   // Add click outside handler
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -101,23 +101,26 @@ function RoomDetail() {
 
   useEffect(() => {
     items.forEach(item => {
-      const lastQuantity = lastKnownQuantities.get(item.id);
-      const isBelowMinimum = item.minQuantity !== undefined && 
-                           item.minQuantity !== null && 
+      const lastQuantity = lastKnownQuantities.current.get(item.id);
+      const lastNotified = lastNotifiedQuantity.current.get(item.id);
+      const isBelowMinimum = item.minQuantity !== undefined &&
+                           item.minQuantity !== null &&
                            item.quantity < item.minQuantity;
-      
-      // Only notify if:
-      // 1. Item is below minimum
-      // 2. Either:
-      //    a. We haven't notified for this item before, or
-      //    b. The quantity has decreased since last check
-      if (isBelowMinimum && (!notifiedItems.has(item.id) || (lastQuantity !== undefined && item.quantity < lastQuantity))) {
+      const wasAboveMinimum = lastQuantity !== undefined && 
+                            lastQuantity >= item.minQuantity;
+      const isDecreasing = lastQuantity !== undefined && 
+                         item.quantity < lastQuantity;
+
+      if (
+        isBelowMinimum && 
+        (wasAboveMinimum || isDecreasing) && // Notify if crossing below min OR decreasing while below min
+        item.quantity !== lastNotified // Only notify if not already notified for this quantity
+      ) {
         notifySlack(item.name, roomName, item.quantity, item.minQuantity);
-        notifiedItems.add(item.id);
+        lastNotifiedQuantity.current.set(item.id, item.quantity);
       }
-      
-      // Update last known quantity
-      lastKnownQuantities.set(item.id, item.quantity);
+
+      lastKnownQuantities.current.set(item.id, item.quantity);
     });
   }, [items, roomName]);
 
@@ -250,25 +253,44 @@ function RoomDetail() {
 
     let imageUrl = DEFAULT_IMAGE_URL;
     if (newItemImage) {
-      const fileExt = newItemImage.name.split('.').pop();
-      const fileName = `${Date.now()}.${fileExt}`;
-      const filePath = `roomItems/${fileName}`;
+      try {
+        console.log('Starting image upload...');
+        const fileExt = newItemImage.name.split('.').pop().toLowerCase();
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+        const filePath = `roomItems/${fileName}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from('images')
-        .upload(filePath, newItemImage);
+        console.log('Uploading to path:', filePath);
+        const { error: uploadError, data: uploadData } = await supabase.storage
+          .from('images')
+          .upload(filePath, newItemImage, {
+            cacheControl: '3600',
+            upsert: false
+          });
 
-      if (uploadError) {
-        console.error('Error uploading image:', uploadError);
-        alert('Image upload failed!');
+        if (uploadError) {
+          console.error('Error uploading image:', uploadError);
+          alert(`Image upload failed: ${uploadError.message}`);
+          return;
+        }
+
+        console.log('Upload successful, getting public URL...');
+        const { data: publicUrlData, error: publicUrlError } = await supabase.storage
+          .from('images')
+          .getPublicUrl(filePath);
+
+        if (publicUrlError) {
+          console.error('Error getting public URL:', publicUrlError);
+          alert('Failed to get image URL');
+          return;
+        }
+
+        imageUrl = publicUrlData.publicUrl;
+        console.log('Image URL:', imageUrl);
+      } catch (error) {
+        console.error('Unexpected error during image upload:', error);
+        alert('An unexpected error occurred during image upload');
         return;
       }
-
-      const { data } = supabase.storage
-        .from('images')
-        .getPublicUrl(filePath);
-
-      imageUrl = data.publicUrl;
     }
 
     const itemData = {
@@ -506,7 +528,7 @@ function RoomDetail() {
   // Update the checkWebhookHealth function
   const checkWebhookHealth = async () => {
     try {
-      const response = await fetch('http://192.168.100.31:4000/api/health');
+      const response = await fetch('http://localhost:4000/api/health');
       const data = await response.json();
       
       setWebhookHealth({
@@ -535,32 +557,43 @@ function RoomDetail() {
     }
 
     try {
-      const serverUrl = 'http://192.168.100.31:4000/api/notify-slack';
-      console.log('Sending notification to:', serverUrl);
-      
+      // Use env variable if available, fallback to localhost
+      const serverUrl = process.env.REACT_APP_NOTIFICATION_SERVER_URL
+        ? process.env.REACT_APP_NOTIFICATION_SERVER_URL + '/api/notify-slack'
+        : 'http://localhost:4000/api/notify-slack';
+      const payload = {
+        itemName,
+        roomName,
+        quantity,
+        minQuantity
+      };
+      console.log('DEBUG: Sending notification to:', serverUrl);
+      console.log('DEBUG: Payload:', payload);
       const response = await fetch(serverUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          itemName,
-          roomName,
-          quantity,
-          minQuantity
-        })
+        body: JSON.stringify(payload)
       });
-
+      console.log('DEBUG: Response status:', response.status);
+      let errorData = null;
       if (!response.ok) {
-        const errorData = await response.json();
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          errorData = { error: 'Failed to parse error response' };
+        }
         console.error('Slack notification failed:', errorData);
-        
         if (response.status === 503) {
           setWebhookHealth({
             status: 'unhealthy',
             error: errorData.details
           });
         }
+      } else {
+        const respText = await response.text();
+        console.log('DEBUG: Response text:', respText);
       }
     } catch (error) {
       console.error('Failed to send Slack notification:', error);
