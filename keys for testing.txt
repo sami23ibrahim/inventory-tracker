@@ -7,7 +7,7 @@ REACT_APP_FIREBASE_MESSAGING_SENDER_ID=106433243335
 REACT_APP_FIREBASE_APP_ID=1:106433243335:web:f9d433cc419fac85ba36e2
 
 # Slack Configuration
-REACT_APP_SLACK_WEBHOOK_URL=https://hooks.slack.com/services/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
+REACT_APP_SLACK_WEBHOOK_URL=https://hooks.slack.com/services/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
 
 # Supabase Configuration
 REACT_APP_SUPABASE_URL=https://tvsfkhtnricoojiwjbln.supabase.co
