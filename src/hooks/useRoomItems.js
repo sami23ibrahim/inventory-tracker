@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, runTransaction } from "firebase/firestore";
 
 export default function useRoomItems(roomId, db, supabase, DEFAULT_IMAGE_URL) {
