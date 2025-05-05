@@ -26,7 +26,7 @@ export default async function handler(req, res) {
           `<@U08P9GAUV6Y> <@U08P8G8S6TD>\n\n` +
           `*Room:* ${roomName}\n` +
           `*Item:* ${itemName}\n` +
-          `*Current Quantity:* ${quantity}(Min: ${minQuantity})`
+          `*Current Quantity:* ${quantity}(Min: ${minQuantity})` 
   };
 
   try {

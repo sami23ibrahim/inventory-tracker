@@ -89,6 +89,7 @@ function RoomDetail() {
       console.log('Skipping Slack notification on mobile device');
       return;
     }
+    console.log('NOTIFY SLACK: webhookHealth.status is', webhookHealth.status);
     if (webhookHealth.status === 'unhealthy') {
       console.error('Skipping notification - Slack webhook is not working:', webhookHealth.error);
       return;
