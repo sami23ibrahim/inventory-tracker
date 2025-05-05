@@ -103,8 +103,7 @@ function RoomDetail() {
         quantity,
         minQuantity
       };
-      console.log('DEBUG: Sending notification to:', serverUrl);
-      console.log('DEBUG: Payload:', payload);
+      console.log('NOTIFY SLACK: About to send notification', serverUrl, payload);
       const response = await fetch(serverUrl, {
         method: 'POST',
         headers: {
@@ -192,6 +191,7 @@ function RoomDetail() {
         (wasAboveMinimum || isDecreasing) && // Notify if crossing below min OR decreasing while below min
         item.quantity !== lastNotified // Only notify if not already notified for this quantity
       ) {
+        console.log('NOTIFY SLACK: Triggering notification for', item.name, roomName, item.quantity, item.minQuantity);
         notifySlack(item.name, roomName, item.quantity, item.minQuantity);
         lastNotifiedQuantity.current.set(item.id, item.quantity);
       }

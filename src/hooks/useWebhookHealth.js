@@ -5,7 +5,10 @@ export default function useWebhookHealth() {
 
   const checkWebhookHealth = useCallback(async () => {
     try {
-      const response = await fetch('http://localhost:4000/api/health');
+      const healthUrl = process.env.REACT_APP_NOTIFICATION_SERVER_URL
+        ? process.env.REACT_APP_NOTIFICATION_SERVER_URL + '/api/health'
+        : 'http://localhost:4000/api/health';
+      const response = await fetch(healthUrl);
       const data = await response.json();
       setWebhookHealth({
         status: data.status === 'healthy' ? 'healthy' : 'unhealthy',
