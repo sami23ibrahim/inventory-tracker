@@ -7,10 +7,6 @@
       "config": {
         "distDir": "build"
       }
-    },
-    {
-      "src": "slack-notify-server.js",
-      "use": "@vercel/node"
     }
   ],
   "routes": [
