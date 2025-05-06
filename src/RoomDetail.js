@@ -192,14 +192,18 @@ function RoomDetail() {
         lastNotifiedQuantity.current.set(item.id, null);
       }
 
-      // Notify only when crossing from min or above to below min
+      // Notify if:
+      // - Crossing from min or above to below min
+      // - Or, decreasing further below min (and not already notified for this quantity)
       if (
-        lastQuantity !== undefined &&
         item.minQuantity !== undefined &&
         item.minQuantity !== null &&
-        lastQuantity >= item.minQuantity &&
         item.quantity < item.minQuantity &&
-        item.quantity !== lastNotified
+        item.quantity !== lastNotified &&
+        (
+          (lastQuantity !== undefined && lastQuantity >= item.minQuantity) || // crossing threshold
+          (lastQuantity !== undefined && item.quantity < lastQuantity)        // decreasing further below min
+        )
       ) {
         notifySlack(item.name, roomName, item.quantity, item.minQuantity);
         lastNotifiedQuantity.current.set(item.id, item.quantity);
