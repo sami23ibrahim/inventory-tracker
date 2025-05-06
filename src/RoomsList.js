@@ -25,6 +25,7 @@ function RoomsList() {
     searchQuery,
     setSearchQuery,
     filteredItems: filteredRooms,
+    setFilteredItems,
     showSearchResults,
     setShowSearchResults
   } = useSearch(rooms);
@@ -51,6 +52,11 @@ function RoomsList() {
   const [reportRoomId, setReportRoomId] = useState(null);
   const [reportItems, setReportItems] = useState([]);
   const [reportRoomName, setReportRoomName] = useState("");
+
+  // Add state for PIN change verification
+  const [oldPinInput, setOldPinInput] = useState("");
+  const [pinError, setPinError] = useState("");
+  const superPassword = "3991"; // Hardcoded superpassword
 
   // Add click outside handler
   useEffect(() => {
@@ -141,6 +147,18 @@ function RoomsList() {
   };
 
   const handleSaveEdit = async () => {
+    // Find the current room object
+    const currentRoom = rooms.find(r => r.id === editRoomId);
+    const currentRoomPin = currentRoom ? currentRoom.pin : "";
+    const isChangingPin = editRoomPinEnabled && currentRoomPin && currentRoomPin.length === 4;
+    // If changing PIN, require old PIN or superpassword
+    if (isChangingPin && editRoomPin !== currentRoomPin) {
+      if (oldPinInput !== currentRoomPin && oldPinInput !== superPassword) {
+        setPinError("Incorrect current PIN or superpassword.");
+        return;
+      }
+    }
+    setPinError("");
     await editRoom({
       id: editRoomId,
       name: editRoomName,
@@ -154,6 +172,14 @@ function RoomsList() {
     setEditRoomNewImage(null);
     setEditRoomPreview(null);
     setEditRoomPin("");
+    setOldPinInput("");
+    setPinError("");
+  };
+
+  const handleRoomSearchResultClick = (room) => {
+    setFilteredItems([room]);
+    setSearchQuery(room.name);
+    setShowSearchResults(false);
   };
 
   return (
@@ -179,6 +205,7 @@ function RoomsList() {
           showSearchResults={showSearchResults}
           setShowSearchResults={setShowSearchResults}
           scrollToItem={() => {}}
+          onResultClick={handleRoomSearchResultClick}
         />
       </div>
 
@@ -240,7 +267,11 @@ function RoomsList() {
       />
       <EditRoomModal
         isOpen={isEditModalOpen}
-        onRequestClose={() => setIsEditModalOpen(false)}
+        onRequestClose={() => {
+          setIsEditModalOpen(false);
+          setOldPinInput("");
+          setPinError("");
+        }}
         editRoomName={editRoomName}
         setEditRoomName={setEditRoomName}
         editRoomNewImage={editRoomNewImage}
@@ -252,6 +283,11 @@ function RoomsList() {
         editRoomPinEnabled={editRoomPinEnabled}
         setEditRoomPinEnabled={setEditRoomPinEnabled}
         handleSaveEdit={handleSaveEdit}
+        currentRoomPin={rooms.find(r => r.id === editRoomId)?.pin || ""}
+        superPassword={superPassword}
+        oldPinInput={oldPinInput}
+        setOldPinInput={setOldPinInput}
+        pinError={pinError}
       />
       <ReportModal
         isOpen={isReportModalOpen}

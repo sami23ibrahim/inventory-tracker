@@ -13,17 +13,24 @@ const InfoModal = ({
     onRequestClose={onRequestClose}
     contentLabel="Item Info"
     style={{
+      overlay: {
+        zIndex: 3000,
+        backgroundColor: 'rgba(24, 24, 24, 0.85)'
+      },
       content: {
-        minWidth: '320px',
+        minWidth: '0',
         width: '90vw',
         maxWidth: '420px',
-        height: 'auto',
+        boxSizing: 'border-box',
         margin: 'auto',
         textAlign: 'center',
         borderRadius: '12px',
         padding: '30px',
         background: "#232323",
-        border: '1px solid #fff'
+        border: '1px solid #fff',
+        left: '50%',
+        right: 'auto',
+        transform: 'translateX(-50%)'
       }
     }}
   >

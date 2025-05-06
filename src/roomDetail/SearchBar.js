@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from "react";
 
-const SearchBar = ({ searchQuery, setSearchQuery, filteredItems, showSearchResults, setShowSearchResults, scrollToItem }) => {
+const SearchBar = ({ searchQuery, setSearchQuery, filteredItems, showSearchResults, setShowSearchResults, scrollToItem, onResultClick }) => {
   const containerRef = useRef(null);
 
   useEffect(() => {
@@ -63,8 +63,12 @@ const SearchBar = ({ searchQuery, setSearchQuery, filteredItems, showSearchResul
               <div
                 key={item.id}
                 onClick={() => {
-                  scrollToItem(item.id);
-                  setShowSearchResults(false);
+                  if (onResultClick) {
+                    onResultClick(item);
+                  } else {
+                    scrollToItem(item.id);
+                    setShowSearchResults(false);
+                  }
                 }}
                 style={{
                   padding: "8px",

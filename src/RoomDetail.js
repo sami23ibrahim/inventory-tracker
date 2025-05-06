@@ -95,9 +95,8 @@ function RoomDetail() {
       return;
     }
     try {
-      const serverUrl = process.env.REACT_APP_NOTIFICATION_SERVER_URL
-        ? process.env.REACT_APP_NOTIFICATION_SERVER_URL + '/api/notify-slack'
-        : 'http://localhost:4000/api/notify-slack';
+      // Always use the Vercel backend for notifications
+      const serverUrl = 'https://inventoryd3z.vercel.app/api/notify-slack';
       const payload = {
         itemName,
         roomName,
@@ -139,9 +138,17 @@ function RoomDetail() {
     searchQuery,
     setSearchQuery,
     filteredItems,
+    setFilteredItems,
     showSearchResults,
     setShowSearchResults
   } = useSearch(items);
+
+  const handleSearchResultClick = (item) => {
+    setFilteredItems([item]);
+    setSearchQuery(item.name);
+    setShowSearchResults(false);
+    scrollToItem(item.id);
+  };
 
   const scrollToItem = (itemId) => {
     const element = document.getElementById(`item-${itemId}`);
@@ -362,6 +369,7 @@ function RoomDetail() {
               showSearchResults={showSearchResults}
               setShowSearchResults={setShowSearchResults}
               scrollToItem={scrollToItem}
+              onResultClick={handleSearchResultClick}
             />
           </div>
 

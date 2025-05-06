@@ -14,7 +14,12 @@ const EditRoomModal = ({
   setEditRoomPin,
   editRoomPinEnabled,
   setEditRoomPinEnabled,
-  handleSaveEdit
+  handleSaveEdit,
+  currentRoomPin,
+  superPassword,
+  oldPinInput,
+  setOldPinInput,
+  pinError
 }) => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -25,6 +30,8 @@ const EditRoomModal = ({
       reader.readAsDataURL(file);
     }
   };
+
+  const isChangingPin = currentRoomPin && currentRoomPin.length === 4;
 
   return (
     <Modal
@@ -95,32 +102,56 @@ const EditRoomModal = ({
           }}
           style={{ marginRight: "8px" }}
         />
-        Set PIN
+        {isChangingPin ? "Change PIN" : "Set PIN"}
       </label>
       {editRoomPinEnabled && (
-        <input
-          type="password"
-          value={editRoomPin}
-          onChange={e => {
-            const val = e.target.value.replace(/\D/g, "").slice(0, 4);
-            setEditRoomPin(val);
-          }}
-          placeholder="4-digit PIN (optional)"
-          style={{
-            marginTop: "10px",
-            width: "70%",
-            padding: "10px",
-            borderRadius: "10px",
-            border: "1px solid #fff",
-            backgroundColor: "#222",
-            color: "#fff",
-            fontSize: "16px",
-            textAlign: "center",
-            outline: "none",
-            letterSpacing: "8px"
-          }}
-        />
+        <>
+          {isChangingPin && (
+            <input
+              type="password"
+              value={oldPinInput}
+              onChange={e => setOldPinInput(e.target.value.replace(/\D/g, "").slice(0, 4))}
+              placeholder="Current PIN or Superpassword"
+              style={{
+                marginTop: "10px",
+                width: "70%",
+                padding: "10px",
+                borderRadius: "10px",
+                border: "1px solid #fff",
+                backgroundColor: "#222",
+                color: "#fff",
+                fontSize: "16px",
+                textAlign: "center",
+                outline: "none",
+                letterSpacing: "8px"
+              }}
+            />
+          )}
+          <input
+            type="password"
+            value={editRoomPin}
+            onChange={e => {
+              const val = e.target.value.replace(/\D/g, "").slice(0, 4);
+              setEditRoomPin(val);
+            }}
+            placeholder="4-digit PIN (optional)"
+            style={{
+              marginTop: "10px",
+              width: "70%",
+              padding: "10px",
+              borderRadius: "10px",
+              border: "1px solid #fff",
+              backgroundColor: "#222",
+              color: "#fff",
+              fontSize: "16px",
+              textAlign: "center",
+              outline: "none",
+              letterSpacing: "8px"
+            }}
+          />
+        </>
       )}
+      {pinError && <div style={{ color: '#ff4d4f', marginTop: 8 }}>{pinError}</div>}
       <div style={{ marginTop: "20px" }}>
         <button style={{
           fontSize: "18px",

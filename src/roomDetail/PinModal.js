@@ -18,27 +18,23 @@ const PinModal = ({
     contentLabel="Enter PIN"
     style={{
       overlay: {
-        backgroundColor: 'rgba(24, 24, 24, 0.6)',
-        backdropFilter: 'blur(6px)',
-        zIndex: 1000
+        zIndex: 3000,
+        backgroundColor: 'rgba(24, 24, 24, 0.85)'
       },
       content: {
-        width: '90%',
-        maxWidth: '400px',
-        height: 'auto',
-        minHeight: '400px',
-        maxHeight: '500px',
+        minWidth: '0',
+        width: '90vw',
+        maxWidth: '420px',
+        boxSizing: 'border-box',
         margin: 'auto',
         textAlign: 'center',
-        borderRadius: '18px',
-        padding: '32px',
+        borderRadius: '12px',
+        padding: '30px',
         background: "#232323",
         border: '1px solid #fff',
-        overflow: 'hidden',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
+        left: '50%',
+        right: 'auto',
+        transform: 'translateX(-50%)'
       }
     }}
   >
