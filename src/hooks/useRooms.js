@@ -91,6 +91,28 @@ export default function useRooms(db, supabase) {
   const deleteRoom = useCallback(async (roomId, roomImageUrl) => {
     const confirmDelete = window.confirm("Are you sure you want to delete this room?");
     if (!confirmDelete) return;
+
+    // 1. Fetch all items in the room
+    const itemsCollection = collection(db, "rooms", roomId, "items");
+    const itemSnapshot = await getDocs(itemsCollection);
+    const items = itemSnapshot.docs.map(doc => doc.data());
+
+    // 2. Delete each item's image from Supabase
+    for (const item of items) {
+      if (item.imageUrl) {
+        try {
+          const splitUrl = item.imageUrl.split('/public/images/');
+          if (splitUrl.length === 2) {
+            const filePath = splitUrl[1];
+            await supabase.storage.from('images').remove([filePath]);
+          }
+        } catch (error) {
+          // Optionally log error
+        }
+      }
+    }
+
+    // 3. Delete the room's image as before
     if (roomImageUrl) {
       try {
         const splitUrl = roomImageUrl.split('/public/images/');
@@ -100,6 +122,8 @@ export default function useRooms(db, supabase) {
         }
       } catch (error) {}
     }
+
+    // 4. Delete the room and its items from Firestore
     const roomRef = doc(db, "rooms", roomId);
     await deleteDoc(roomRef);
     fetchRoomsAndStock();
