@@ -186,20 +186,21 @@ function RoomDetail() {
     items.forEach(item => {
       const lastQuantity = lastKnownQuantities.current.get(item.id);
       const lastNotified = lastNotifiedQuantity.current.get(item.id);
-      const isBelowMinimum = item.minQuantity !== undefined &&
-                             item.minQuantity !== null &&
-                             item.quantity < item.minQuantity;
-      const wasAboveMinimum = lastQuantity !== undefined && 
-                            lastQuantity >= item.minQuantity;
-      const isDecreasing = lastQuantity !== undefined && 
-                         item.quantity < lastQuantity;
 
+      // Reset notification state if at or above min
+      if (item.minQuantity !== undefined && item.minQuantity !== null && item.quantity >= item.minQuantity) {
+        lastNotifiedQuantity.current.set(item.id, null);
+      }
+
+      // Notify only when crossing from min or above to below min
       if (
-        isBelowMinimum &&
-        (wasAboveMinimum || isDecreasing) && // Notify if crossing below min OR decreasing while below min
-        item.quantity !== lastNotified // Only notify if not already notified for this quantity
+        lastQuantity !== undefined &&
+        item.minQuantity !== undefined &&
+        item.minQuantity !== null &&
+        lastQuantity >= item.minQuantity &&
+        item.quantity < item.minQuantity &&
+        item.quantity !== lastNotified
       ) {
-        console.log('NOTIFY SLACK: Triggering notification for', item.name, roomName, item.quantity, item.minQuantity);
         notifySlack(item.name, roomName, item.quantity, item.minQuantity);
         lastNotifiedQuantity.current.set(item.id, item.quantity);
       }
