@@ -10,8 +10,6 @@ import EditRoomModal from "./roomsList/EditRoomModal";
 import ReportModal from "./roomsList/ReportModal";
 import SearchBar from "./roomDetail/SearchBar";
 import useSearch from "./hooks/useSearch";
-import { FiHome } from "react-icons/fi";
-import { useNavigate } from "react-router-dom";
 
 Modal.setAppElement('#root');
 
@@ -59,8 +57,6 @@ function RoomsList() {
   const [oldPinInput, setOldPinInput] = useState("");
   const [pinError, setPinError] = useState("");
   const superPassword = "3991"; // Hardcoded superpassword
-
-  const navigate = useNavigate();
 
   // Add click outside handler
   useEffect(() => {
