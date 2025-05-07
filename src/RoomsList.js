@@ -10,6 +10,8 @@ import EditRoomModal from "./roomsList/EditRoomModal";
 import ReportModal from "./roomsList/ReportModal";
 import SearchBar from "./roomDetail/SearchBar";
 import useSearch from "./hooks/useSearch";
+import { FiHome } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
 
 Modal.setAppElement('#root');
 
@@ -57,6 +59,8 @@ function RoomsList() {
   const [oldPinInput, setOldPinInput] = useState("");
   const [pinError, setPinError] = useState("");
   const superPassword = "3991"; // Hardcoded superpassword
+
+  const navigate = useNavigate();
 
   // Add click outside handler
   useEffect(() => {
@@ -186,16 +190,26 @@ function RoomsList() {
     <div style={{
       padding: "20px",
       minHeight: "100vh",
-      background: "#181818"
+      background: "#d5e7e2"
     }}>
       <h2 style={{ 
-        fontSize: "44px", 
+        fontFamily: "'Baloo 2', Arial, sans-serif",
+        fontSize: "50px", 
+        fontWeight: 900,
+        color: "#fff",
         marginBottom: "30px", 
-        color: "#FFF8DC", 
         textAlign: "center", 
-        letterSpacing: "1.5px",
-        textShadow: `0 0 2px #fff8dc, 0 0 4px #ffe066, 0 2px 4px #000, 0 0 8px #ffd700`
-      }}>Die Drei Zahnärzte</h2>
+        letterSpacing: "0.04em",
+        lineHeight: 1.1,
+        textShadow: `
+          0 2px 0 #b0b0b0,
+          0 4px 0 #a3c5e0,
+          0 6px 8px rgba(163,197,224,0.35),
+          0 8px 16px #a3c5e0
+        `
+      }}>
+        Die Drei Zahnärzte
+      </h2>
 
       <div style={{ display: "flex", justifyContent: "center", marginBottom: "20px" }}>
         <SearchBar
@@ -231,8 +245,8 @@ function RoomsList() {
           position: "fixed",
           bottom: "30px",
           right: "30px",
-          background: "#232323",
-          color: "#F5E8C7",
+          background: "#a3c5e0",
+          color: "#fff",
           border: "1px solid #fff",
           borderRadius: "50%",
           width: "60px",
@@ -240,7 +254,7 @@ function RoomsList() {
           fontSize: "38px",
           fontWeight: 700,
           cursor: "pointer",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.7)",
+          boxShadow: "0 2px 8px #fff",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",

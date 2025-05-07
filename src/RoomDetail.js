@@ -322,51 +322,67 @@ function RoomDetail() {
     setInfoNote("");
   };
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (openMenuId && !event.target.closest('.item-menu')) {
+        setOpenMenuId(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [openMenuId]);
+
   return (
     <div style={{
       padding: "20px",
       minHeight: "100vh",
-      background: "#181818"
+      background: "#d5e7e2"
     }}>
       {isPinVerified && (
         <>
-          {/* Search Bar and Home Button Container */}
-          <div style={{
-            position: "absolute",
-            top: "20px",
-            left: "20px",
-            display: "flex",
-            alignItems: "center",
-            gap: "10px",
-            zIndex: 200
-          }}>
-            {/* Home Button */}
-            <button
-              onClick={() => navigate("/")}
-              style={{
-                background: "transparent",
-                color: "#F5E8C7",
-                border: "none",
-                borderRadius: "50%",
-                width: "50px",
-                height: "50px",
-                fontSize: "32px",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: 0,
-                WebkitTapHighlightColor: "transparent",
-                WebkitTouchCallout: "none",
-                WebkitUserSelect: "none",
-                touchAction: "manipulation"
-              }}
-              title="Home"
-            >
-              <FiHome />
-            </button>
+          {/* Sticky Home Button */}
+          <button
+            onClick={() => navigate("/")}
+            style={{
+              position: "fixed",
+              top: "20px",
+              left: "20px",
+              background: "#a3c5e0",
+              color: "#fff",
+              border: "none",
+              borderRadius: "50%",
+              width: "55px",
+              height: "55px",
+              fontSize: "32px",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: 0,
+              boxShadow: '0 2px 8px #fff',
+              WebkitTapHighlightColor: "transparent",
+              WebkitTouchCallout: "none",
+              WebkitUserSelect: "none",
+              touchAction: "manipulation",
+              zIndex: 201
+            }}
+            title="Home"
+          >
+            <FiHome />
+          </button>
 
-            {/* Search Bar */}
+          {/* Room Name/Header */}
+          <RoomHeader roomName={roomName} navigate={navigate} />
+
+          {/* Centered Search Bar below Room Name */}
+          <div style={{
+            width: "100%",
+            display: "flex",
+            justifyContent: "center",
+            marginTop: "18px"
+          }}>
             <SearchBar
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
@@ -403,15 +419,14 @@ function RoomDetail() {
       {/* Only show room content if PIN is verified or no PIN exists */}
       {isPinVerified && (
         <React.Fragment>
-          <RoomHeader roomName={roomName} navigate={navigate} />
           <button 
             onClick={() => setIsModalOpen(true)}
             style={{
               position: "fixed",
               bottom: "30px",
               right: "30px",
-              background: "#232323",
-              color: "#F5E8C7",
+              background: "#a3c5e0",
+              color: "#fff",
               border: "1px solid #fff",
               borderRadius: "50%",
               width: "60px",
@@ -419,7 +434,7 @@ function RoomDetail() {
               fontSize: "38px",
               fontWeight: 700,
               cursor: "pointer",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.7)",
+              boxShadow: "0 2px 8px #fff",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",

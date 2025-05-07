@@ -15,7 +15,7 @@ const InfoModal = ({
     style={{
       overlay: {
         zIndex: 3000,
-        backgroundColor: 'rgba(24, 24, 24, 0.85)'
+        backgroundColor: 'rgba(235, 231, 223, 0.85)'
       },
       content: {
         minWidth: '0',
@@ -26,15 +26,16 @@ const InfoModal = ({
         textAlign: 'center',
         borderRadius: '12px',
         padding: '30px',
-        background: "#232323",
+        background: '#a3c5e0',
         border: '1px solid #fff',
         left: '50%',
         right: 'auto',
-        transform: 'translateX(-50%)'
+        transform: 'translateX(-50%)',
+        color: '#fff'
       }
     }}
   >
-    <h2 style={{ fontSize: "32px", marginBottom: "20px", color: "#F5E8C7", textAlign: "center" }}>Item Notes</h2>
+    <h2 style={{ fontSize: "32px", marginBottom: "20px", color: "#fff", textAlign: "center" }}>Item Notes</h2>
     <textarea
       value={infoNote}
       onChange={(e) => setInfoNote(e.target.value)}
@@ -45,8 +46,8 @@ const InfoModal = ({
         padding: "10px",
         borderRadius: "10px",
         border: "1px solid #fff",
-        backgroundColor: "#222",
-        color: "#fff",
+        backgroundColor: "#fff",
+        color: "#232323",
         fontSize: "16px",
         outline: "none",
         resize: "none"
@@ -59,14 +60,14 @@ const InfoModal = ({
           fontSize: "18px",
           marginBottom: "20px",
           backgroundColor: "#fff",
-          color: "#232323",
+          color: "#a3c5e0",
           border: "none",
           padding: "8px 16px",
           borderRadius: "10px",
           cursor: "pointer"
         }}
       >
-        Save Notes
+        <span style={{color: '#a3c5e0', fontWeight: 700}}>Save Notes</span>
       </button>
       <button
         onClick={onRequestClose}
@@ -74,14 +75,14 @@ const InfoModal = ({
           fontSize: "18px",
           margin: "20px",
           backgroundColor: "#fff",
-          color: "#232323",
+          color: "#a3c5e0",
           border: "none",
           padding: "8px 16px",
           borderRadius: "10px",
           cursor: "pointer"
         }}
       >
-        Cancel
+        <span style={{color: '#a3c5e0', fontWeight: 700}}>Cancel</span>
       </button>
     </div>
   </Modal>

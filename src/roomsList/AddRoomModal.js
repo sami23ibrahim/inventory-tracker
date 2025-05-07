@@ -32,6 +32,10 @@ const AddRoomModal = ({
       onRequestClose={onRequestClose}
       contentLabel="Add New Room"
       style={{
+        overlay: {
+          zIndex: 3000,
+          backgroundColor: 'rgba(235, 231, 223, 0.85)'
+        },
         content: {
           minWidth: '0',
           width: '90vw',
@@ -41,15 +45,16 @@ const AddRoomModal = ({
           textAlign: 'center',
           borderRadius: '12px',
           padding: '30px',
-          background: '#232323',
+          background: '#a3c5e0',
           border: '1px solid #fff',
           left: '50%',
           right: 'auto',
-          transform: 'translateX(-50%)'
+          transform: 'translateX(-50%)',
+          color: '#fff'
         }
       }}
     >
-      <h2 style={{ fontSize: "32px", marginBottom: "20px", color: "#F5E8C7", textAlign: "center" }}>Add New Room</h2>
+      <h2 style={{ fontSize: "32px", marginBottom: "20px", color: "#fff", textAlign: "center" }}>Add New Room</h2>
       <input
         type="text"
         value={newRoomName}
@@ -61,8 +66,8 @@ const AddRoomModal = ({
           padding: "10px",
           borderRadius: "10px",
           border: "1px solid #fff",
-          backgroundColor: "#222",
-          color: "#fff",
+          backgroundColor: "#fff",
+          color: "white",
           fontSize: "16px",
           textAlign: "center",
           outline: "none"
@@ -77,8 +82,8 @@ const AddRoomModal = ({
           padding: "8px",
           borderRadius: "10px",
           border: "none",
-          backgroundColor: "#222",
-          color: "#fff",
+          backgroundColor: "#fff",
+          color: "#232323",
           fontSize: "16px",
           outline: "none"
         }}
@@ -86,7 +91,7 @@ const AddRoomModal = ({
       {newRoomPreview && (
         <img src={newRoomPreview} alt="Preview" style={{ marginTop: "10px", width: "70%", borderRadius: "8px" }} />
       )}
-      <label style={{ display: "block", marginTop: "15px", color: "#F5E8C7" }}>
+      <label style={{ display: "block", marginTop: "15px", color: "#fff" }}>
         <input
           type="checkbox"
           checked={newRoomPinEnabled}
@@ -102,56 +107,52 @@ const AddRoomModal = ({
         <input
           type="password"
           value={newRoomPin}
-          onChange={e => {
-            const val = e.target.value.replace(/\D/g, "").slice(0, 4);
-            setNewRoomPin(val);
-          }}
-          placeholder="4-digit PIN(optional)"
+          onChange={e => setNewRoomPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
+          placeholder="4-digit PIN (optional)"
           style={{
             marginTop: "10px",
-            width: "90%",
+            width: "70%",
             padding: "10px",
             borderRadius: "10px",
             border: "1px solid #fff",
-            backgroundColor: "#222",
-            color: "#fff",
+            backgroundColor: "#fff",
+            color: "#232323",
             fontSize: "16px",
             textAlign: "center",
-            outline: "none",
-            letterSpacing: "8px"
+            outline: "none"
           }}
         />
       )}
       <div style={{ marginTop: "20px" }}>
         <button
+          onClick={handleAddRoom}
           style={{
             fontSize: "18px",
             marginBottom: "20px",
             backgroundColor: "#fff",
-            color: "#232323",
+            color: "#a3c5e0",
             border: "none",
-            padding: "8px 8px",
+            padding: "8px 16px",
             borderRadius: "10px",
             cursor: "pointer"
           }}
-          onClick={handleAddRoom}
         >
-          Add Room
+          <span style={{color: '#a3c5e0', fontWeight: 700}}>Add Room</span>
         </button>
         <button
+          onClick={onRequestClose}
           style={{
             fontSize: "18px",
             margin: "20px",
             backgroundColor: "#fff",
-            color: "#232323",
+            color: "#a3c5e0",
             border: "none",
-            padding: "8px 8px",
+            padding: "8px 16px",
             borderRadius: "10px",
             cursor: "pointer"
           }}
-          onClick={onRequestClose}
         >
-          Cancel
+          <span style={{color: '#a3c5e0', fontWeight: 700}}>Cancel</span>
         </button>
       </div>
     </Modal>

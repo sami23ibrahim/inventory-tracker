@@ -23,7 +23,7 @@ const AddItemModal = ({
     style={{
       overlay: {
         zIndex: 3000,
-        backgroundColor: 'rgba(24, 24, 24, 0.85)'
+        backgroundColor: 'rgba(235, 231, 223, 0.85)'
       },
       content: {
         minWidth: '0',
@@ -34,15 +34,16 @@ const AddItemModal = ({
         textAlign: 'center',
         borderRadius: '12px',
         padding: '30px',
-        background: "#232323",
+        background: '#a3c5e0',
         border: '1px solid #fff',
         left: '50%',
         right: 'auto',
-        transform: 'translateX(-50%)'
+        transform: 'translateX(-50%)',
+        color: '#fff'
       }
     }}
   >
-    <h2 style={{ fontSize: "32px", marginBottom: "20px", color: "#F5E8C7", textAlign: "center" }}>Add New Item</h2>
+    <h2 style={{ fontSize: "32px", marginBottom: "20px", color: "#fff", textAlign: "center" }}>Add New Item</h2>
     <input
       type="text"
       value={newItemName}
@@ -54,8 +55,8 @@ const AddItemModal = ({
         padding: "10px",
         borderRadius: "10px",
         border: "1px solid #fff",
-        backgroundColor: "#222",
-        color: "#fff",
+        backgroundColor: "#fff",
+        color: "#232323",
         fontSize: "16px",
         textAlign: "center",
         outline: "none"
@@ -70,8 +71,8 @@ const AddItemModal = ({
         padding: "8px",
         borderRadius: "10px",
         border: "none",
-        backgroundColor: "#222",
-        color: "#fff",
+        backgroundColor: "#fff",
+        color: "#232323",
         fontSize: "16px",
         outline: "none"
       }}
@@ -87,14 +88,14 @@ const AddItemModal = ({
         padding: "10px",
         borderRadius: "10px",
         border: "1px solid #fff",
-        backgroundColor: "#222",
-        color: "#fff",
+        backgroundColor: "#fff",
+        color: "#232323",
         fontSize: "16px",
         textAlign: "center",
         outline: "none"
       }}
     />
-    <label style={{ display: "block", marginTop: "15px", color: "#F5E8C7" }}>
+    <label style={{ display: "block", marginTop: "15px", color: "#fff" }}>
       <input
         type="checkbox"
         checked={newItemMinEnabled}
@@ -108,7 +109,7 @@ const AddItemModal = ({
         type="number"
         value={newItemMinValue}
         min={1}
-        onChange={e => setNewItemMinValue(Number(e.target.value))}
+        onChange={(e) => setNewItemMinValue(Number(e.target.value))}
         placeholder="Minimum Quantity"
         style={{
           marginTop: "10px",
@@ -116,8 +117,8 @@ const AddItemModal = ({
           padding: "10px",
           borderRadius: "10px",
           border: "1px solid #fff",
-          backgroundColor: "#222",
-          color: "#fff",
+          backgroundColor: "#fff",
+          color: "#232323",
           fontSize: "16px",
           textAlign: "center",
           outline: "none"
@@ -131,14 +132,14 @@ const AddItemModal = ({
           fontSize: "18px",
           marginBottom: "20px",
           backgroundColor: "#fff",
-          color: "#232323",
+          color: "#a3c5e0",
           border: "none",
           padding: "8px 16px",
           borderRadius: "10px",
           cursor: "pointer"
         }}
       >
-        Add Item
+        <span style={{color: '#a3c5e0', fontWeight: 700}}>Add Item</span>
       </button>
       <button
         onClick={onRequestClose}
@@ -146,14 +147,14 @@ const AddItemModal = ({
           fontSize: "18px",
           margin: "20px",
           backgroundColor: "#fff",
-          color: "#232323",
+          color: "#a3c5e0",
           border: "none",
           padding: "8px 16px",
           borderRadius: "10px",
           cursor: "pointer"
         }}
       >
-        Cancel
+        <span style={{color: '#a3c5e0', fontWeight: 700}}>Cancel</span>
       </button>
     </div>
   </Modal>

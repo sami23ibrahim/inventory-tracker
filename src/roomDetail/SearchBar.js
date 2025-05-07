@@ -25,13 +25,13 @@ const SearchBar = ({ searchQuery, setSearchQuery, filteredItems, showSearchResul
         onFocus={() => setShowSearchResults(true)}
         placeholder="Search..."
         style={{
-          width: "200px",
-          padding: "8px 12px",
+          width: "240px",
+          padding: "10px 14px",
           borderRadius: "20px",
-          border: "1px solid #fff",
-          backgroundColor: "#232323",
-          color: "#F5E8C7",
-          fontSize: "14px",
+          border: "1px solid #a3c5e0",
+          backgroundColor: "rgb(255, 255, 255)",
+          color: "#000",
+          fontSize: "16px",
           outline: "none"
         }}
       />
@@ -43,7 +43,7 @@ const SearchBar = ({ searchQuery, setSearchQuery, filteredItems, showSearchResul
           width: "250px",
           maxHeight: "300px",
           overflowY: "auto",
-          background: "#232323",
+          background: "rgb(255, 255, 255)",
           border: "1px solid #fff",
           borderRadius: "8px",
           padding: "10px",
@@ -52,9 +52,14 @@ const SearchBar = ({ searchQuery, setSearchQuery, filteredItems, showSearchResul
         }}>
           {filteredItems.length === 0 ? (
             <div style={{
-              padding: "8px",
-              color: "#F5E8C7",
-              textAlign: "center"
+              padding: "16px",
+              color: "#fff",
+              textAlign: "center",
+              background: "#a3c5e0",
+              border: "1px solid #fff",
+              borderRadius: "10px",
+              fontSize: "18px",
+              fontWeight: 500
             }}>
               No items found matching your search.
             </div>
@@ -73,11 +78,12 @@ const SearchBar = ({ searchQuery, setSearchQuery, filteredItems, showSearchResul
                 style={{
                   padding: "8px",
                   cursor: "pointer",
-                  color: "#F5E8C7",
-                  borderBottom: "1px solid rgba(255,255,255,0.1)",
+                  color: "#a3c5e0",
+                  borderBottom: "1px solid #a3c5e0",
                   display: "flex",
                   justifyContent: "space-between",
-                  alignItems: "center"
+                  alignItems: "center",
+                  background: "#fff"
                 }}
               >
                 <span>
@@ -85,14 +91,14 @@ const SearchBar = ({ searchQuery, setSearchQuery, filteredItems, showSearchResul
                     <span key={i}>
                       {part}
                       {i < arr.length - 1 && (
-                        <span style={{ backgroundColor: "rgba(255,255,255,0.2)" }}>
+                        <span style={{ backgroundColor: "#a3c5e0", color: "#fff", borderRadius: "4px", padding: "0 2px" }}>
                           {searchQuery}
                         </span>
                       )}
                     </span>
                   ))}
                 </span>
-                <span style={{ color: "#888" }}>→</span>
+                <span style={{ color: "#a3c5e0", fontWeight: 700 }}>→</span>
               </div>
             ))
           )}

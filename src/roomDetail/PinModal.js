@@ -19,7 +19,7 @@ const PinModal = ({
     style={{
       overlay: {
         zIndex: 3000,
-        backgroundColor: 'rgba(24, 24, 24, 0.85)'
+        backgroundColor: 'rgba(235, 231, 223, 0.85)'
       },
       content: {
         minWidth: '0',
@@ -30,15 +30,16 @@ const PinModal = ({
         textAlign: 'center',
         borderRadius: '12px',
         padding: '30px',
-        background: "#232323",
+        background: '#a3c5e0',
         border: '1px solid #fff',
         left: '50%',
         right: 'auto',
-        transform: 'translateX(-50%)'
+        transform: 'translateX(-50%)',
+        color: '#fff'
       }
     }}
   >
-    <h2 style={{ fontSize: "32px", marginBottom: "18px", color: "#F5E8C7", textAlign: "center" }}>Enter PIN</h2>
+    <h2 style={{ fontSize: "32px", marginBottom: "18px", color: "#fff", textAlign: "center" }}>Enter PIN</h2>
     {/* PIN Display */}
     <div style={{
       display: 'flex',
@@ -81,8 +82,8 @@ const PinModal = ({
             width: '70px',
             height: '70px',
             fontSize: '32px',
-            background: '#232323',
-            color: '#F5E8C7',
+            background: '#a3c5e0',
+            color: '#fff',
             border: '1px solid #fff',
             borderRadius: '50%',
             cursor: 'pointer',
@@ -92,10 +93,10 @@ const PinModal = ({
             transition: 'background 0.2s',
             margin: 0,
             padding: 0,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+            boxShadow: '0 2px 8px #fff'
           }}
-          onMouseOver={e => e.currentTarget.style.background = '#363062'}
-          onMouseOut={e => e.currentTarget.style.background = '#232323'}
+          onMouseOver={e => e.currentTarget.style.background = '#F5E8C7'}
+          onMouseOut={e => e.currentTarget.style.background = '#a3c5e0'}
         >
           {number}
         </button>
@@ -106,8 +107,8 @@ const PinModal = ({
           width: '70px',
           height: '70px',
           fontSize: '32px',
-          background: '#232323',
-          color: '#F5E8C7',
+          background: '#a3c5e0',
+          color: '#fff',
           border: '1px solid #fff',
           borderRadius: '50%',
           cursor: 'pointer',
@@ -117,10 +118,10 @@ const PinModal = ({
           transition: 'background 0.2s',
           margin: 0,
           padding: 0,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+          boxShadow: '0 2px 8px #fff'
         }}
-        onMouseOver={e => e.currentTarget.style.background = '#363062'}
-        onMouseOut={e => e.currentTarget.style.background = '#232323'}
+        onMouseOver={e => e.currentTarget.style.background = '#F5E8C7'}
+        onMouseOut={e => e.currentTarget.style.background = '#a3c5e0'}
       >
         0
       </button>
@@ -130,8 +131,8 @@ const PinModal = ({
           width: '70px',
           height: '70px',
           fontSize: '32px',
-          background: '#232323',
-          color: '#F5E8C7',
+          background: '#a3c5e0',
+          color: '#fff',
           border: '1px solid #fff',
           borderRadius: '50%',
           cursor: 'pointer',
@@ -141,10 +142,10 @@ const PinModal = ({
           transition: 'background 0.2s',
           margin: 0,
           padding: 0,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+          boxShadow: '0 2px 8px #fff'
         }}
-        onMouseOver={e => { e.currentTarget.style.background = '#F5E8C7'; e.currentTarget.style.color = '#232323'; }}
-        onMouseOut={e => { e.currentTarget.style.background = '#232323'; e.currentTarget.style.color = '#F5E8C7'; }}
+        onMouseOver={e => { e.currentTarget.style.background = '#F5E8C7'; e.currentTarget.style.color = '#a3c5e0'; }}
+        onMouseOut={e => { e.currentTarget.style.background = '#a3c5e0'; e.currentTarget.style.color = '#F5E8C7'; }}
       >
         ←
       </button>
@@ -154,8 +155,8 @@ const PinModal = ({
         onClick={() => navigate("/")}
         style={{
           fontSize: "18px",
-          backgroundColor: "#232323",
-          color: "#F5E8C7",
+          backgroundColor: "#a3c5e0",
+          color: "#fff",
           border: "1px solid #fff",
           padding: "8px 18px",
           borderRadius: "10px",

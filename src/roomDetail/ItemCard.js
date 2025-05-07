@@ -25,9 +25,9 @@ const ItemCard = ({
     <div
       id={`item-${item.id}`}
       style={{
-        background: isBelowMinimum ? "#ff4d4f" : "#232323",
+        background: isBelowMinimum ? "#f0a3b0" : "#a3c5e0",
         borderRadius: "12px",
-        boxShadow: "0 8px 32px 0 rgba(0,0,0,0.7), 0 2px 8px 0 rgba(0,0,0,0.45), 0 0 0 2px #fff2, 0 0 0 4px #ffd70022",
+        boxShadow: "0 8px 32px 0 rgba(255,255,255,0.7), 0 2px 8px 0 rgba(255,255,255,0.45), 0 0 0 2px #fff2, 0 0 0 4px #ffd70022",
         overflow: "hidden",
         position: "relative",
         padding: "6px",
@@ -88,7 +88,7 @@ const ItemCard = ({
             borderRadius: "50%",
             padding: "12px",
             cursor: "pointer",
-            color: "#FFF8DC",
+            color: "rgb(255, 255, 255)",
             fontSize: "24px",
             width: "48px",
             height: "48px",
@@ -111,7 +111,7 @@ const ItemCard = ({
       <div style={{
         fontSize: "18px",
         fontWeight: "bold",
-        color: "#F5E8C7", 
+        color: "rgb(255, 255, 255)", 
         marginBottom: "10px"
       }}>
         {item.name}

@@ -12,6 +12,10 @@ const ReportModal = ({
     onRequestClose={onRequestClose}
     contentLabel="Room Report"
     style={{
+      overlay: {
+        zIndex: 3000,
+        backgroundColor: 'rgba(235, 231, 223, 0.85)'
+      },
       content: {
         minWidth: '0',
         width: '90vw',
@@ -22,33 +26,34 @@ const ReportModal = ({
         textAlign: 'center',
         borderRadius: '12px',
         padding: '30px',
-        background: '#232323',
+        background: '#a3c5e0',
         border: '1px solid #fff',
         left: '50%',
         right: 'auto',
-        transform: 'translateX(-50%)'
+        transform: 'translateX(-50%)',
+        color: '#fff'
       }
     }}
   >
-    <h2 style={{ fontSize: "28px", marginBottom: "20px", color: "#F5E8C7", textAlign: "center" }}>Report: {reportRoomName}</h2>
+    <h2 style={{ fontSize: "28px", marginBottom: "20px", color: "#fff", textAlign: "center" }}>Report: {reportRoomName}</h2>
     {reportItems.length === 0 ? (
-      <div style={{ color: "#F5E8C7", fontSize: "18px" }}>No items in this room.</div>
+      <div style={{ color: "#fff", fontSize: "18px" }}>No items in this room.</div>
     ) : (
       <ul style={{ listStyle: "none", padding: 0 }}>
         {reportItems.map(item => (
           <li key={item.id} style={{
-            color: (item.minQuantity !== undefined && item.minQuantity !== null && item.quantity < item.minQuantity)
-              ? "#ff4d4f"
-              : "#F5E8C7",
+            color: "#fff",
             fontWeight: "bold",
             fontSize: "18px",
             marginBottom: "10px",
-            background: "rgba(255,255,255,0.07)",
+            background: (item.minQuantity !== undefined && item.minQuantity !== null && item.quantity < item.minQuantity)
+              ? "#f0a3b0"
+              : "rgba(255,255,255,0.07)",
             borderRadius: "8px",
             padding: "8px"
           }}>
-            <span style={{ fontWeight: "bold", fontSize: "18px" }}>{String(item.name)}</span>
-            <span style={{ float: "right" }}>Qty: {item.quantity}</span>
+            <span style={{ fontWeight: "bold", fontSize: "18px", color: "#fff" }}>{String(item.name)}</span>
+            <span style={{ float: "right", color: "#fff" }}>Qty: {item.quantity}</span>
           </li>
         ))}
       </ul>
@@ -59,14 +64,14 @@ const ReportModal = ({
         fontSize: "18px",
         marginTop: "20px",
         backgroundColor: "#fff",
-        color: "#232323",
+        color: "#a3c5e0",
         border: "none",
         padding: "8px 16px",
         borderRadius: "10px",
         cursor: "pointer"
       }}
     >
-      Close
+      <span style={{color: '#a3c5e0', fontWeight: 700}}>Close</span>
     </button>
   </Modal>
 );

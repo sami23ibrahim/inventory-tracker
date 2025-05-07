@@ -17,14 +17,16 @@ const ItemMenu = ({
         position: "absolute",
         top: "10px",
         right: "10px",
-        background: "#232323",
+        background: "#a3c5e0",
         border: "1px solid #fff",
-        borderRadius: "8px",
+        borderRadius: "12px",
         padding: "10px",
         zIndex: 1000,
         display: "flex",
         flexDirection: "column",
-        gap: "5px"
+        gap: "6px",
+        minWidth: "140px",
+        boxShadow: "0 2px 12px #fff"
       }}
     >
       <button
@@ -36,14 +38,15 @@ const ItemMenu = ({
           padding: "8px 12px",
           background: "transparent",
           border: "none",
-          color: "#F5E8C7",
+          color: "#fff",
           cursor: "pointer",
           textAlign: "left",
-          fontSize: "14px"
+          fontSize: "16px"
         }}
       >
         Edit Item
       </button>
+      <div style={{height: '1px', background: '#fff', opacity: 0.3, margin: '4px 0'}} />
       <button
         onClick={() => {
           openInfoModal(item);
@@ -53,14 +56,15 @@ const ItemMenu = ({
           padding: "8px 12px",
           background: "transparent",
           border: "none",
-          color: "#F5E8C7",
+          color: "#fff",
           cursor: "pointer",
           textAlign: "left",
-          fontSize: "14px"
+          fontSize: "16px"
         }}
       >
         Add Notes
       </button>
+      <div style={{height: '1px', background: '#fff', opacity: 0.3, margin: '4px 0'}} />
       <button
         onClick={() => {
           handleDeleteItem(item.id, item.imageUrl);
@@ -73,7 +77,7 @@ const ItemMenu = ({
           color: "#f44336",
           cursor: "pointer",
           textAlign: "left",
-          fontSize: "14px"
+          fontSize: "16px"
         }}
       >
         Delete Item

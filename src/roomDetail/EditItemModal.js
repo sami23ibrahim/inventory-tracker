@@ -22,7 +22,7 @@ const EditItemModal = ({
     style={{
       overlay: {
         zIndex: 3000,
-        backgroundColor: 'rgba(24, 24, 24, 0.85)'
+        backgroundColor: 'rgba(235, 231, 223, 0.85)'
       },
       content: {
         minWidth: '0',
@@ -33,15 +33,16 @@ const EditItemModal = ({
         textAlign: 'center',
         borderRadius: '12px',
         padding: '30px',
-        background: "#232323",
+        background: '#a3c5e0',
         border: '1px solid #fff',
         left: '50%',
         right: 'auto',
-        transform: 'translateX(-50%)'
+        transform: 'translateX(-50%)',
+        color: '#fff'
       }
     }}
   >
-    <h2 style={{ fontSize: "32px", marginBottom: "20px", color: "#F5E8C7", textAlign: "center" }}>Edit Item</h2>
+    <h2 style={{ fontSize: "32px", marginBottom: "20px", color: "#fff", textAlign: "center" }}>Edit Item</h2>
     <input
       type="text"
       value={editItemName}
@@ -53,8 +54,8 @@ const EditItemModal = ({
         padding: "10px",
         borderRadius: "10px",
         border: "1px solid #fff",
-        backgroundColor: "#222",
-        color: "#fff",
+        backgroundColor: "#fff",
+        color: "#232323",
         fontSize: "16px",
         textAlign: "center",
         outline: "none"
@@ -69,8 +70,8 @@ const EditItemModal = ({
         padding: "8px",
         borderRadius: "10px",
         border: "none",
-        backgroundColor: "#222",
-        color: "#fff",
+        backgroundColor: "#fff",
+        color: "#232323",
         fontSize: "16px",
         outline: "none"
       }}
@@ -90,7 +91,7 @@ const EditItemModal = ({
         <p style={{ color: "#F5E8C7", fontSize: "14px" }}>Current Image</p>
       </div>
     )}
-    <label style={{ display: "block", marginTop: "15px", color: "#F5E8C7" }}>
+    <label style={{ display: "block", marginTop: "15px", color: "#fff" }}>
       <input
         type="checkbox"
         checked={editItemMinEnabled}
@@ -112,8 +113,8 @@ const EditItemModal = ({
           padding: "10px",
           borderRadius: "10px",
           border: "1px solid #fff",
-          backgroundColor: "#222",
-          color: "#fff",
+          backgroundColor: "#fff",
+          color: "#232323",
           fontSize: "16px",
           textAlign: "center",
           outline: "none"
@@ -127,14 +128,14 @@ const EditItemModal = ({
           fontSize: "18px",
           marginBottom: "20px",
           backgroundColor: "#fff",
-          color: "#232323",
+          color: "#a3c5e0",
           border: "none",
           padding: "8px 16px",
           borderRadius: "10px",
           cursor: "pointer"
         }}
       >
-        Save Changes
+        <span style={{color: '#a3c5e0', fontWeight: 700}}>Save Changes</span>
       </button>
       <button
         onClick={onRequestClose}
@@ -142,14 +143,14 @@ const EditItemModal = ({
           fontSize: "18px",
           margin: "20px",
           backgroundColor: "#fff",
-          color: "#232323",
+          color: "#a3c5e0",
           border: "none",
           padding: "8px 16px",
           borderRadius: "10px",
           cursor: "pointer"
         }}
       >
-        Cancel
+        <span style={{color: '#a3c5e0', fontWeight: 700}}>Cancel</span>
       </button>
     </div>
   </Modal>

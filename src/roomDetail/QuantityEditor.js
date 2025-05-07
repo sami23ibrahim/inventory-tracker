@@ -23,7 +23,7 @@ const QuantityEditor = ({
       marginBottom: "0",
       position: "relative"
     }}>
-      {isBelowMinimum && (
+      {isBelowMinimum && false && (
         <div style={{
           position: 'absolute',
           top: '-16px',
@@ -72,7 +72,7 @@ const QuantityEditor = ({
               onClick={() => updateQuantity(item.id, item.quantity - 1)}
               style={{
                 background: "transparent",
-                color: "#F5E8C7",
+                color: "#fff",
                 border: "none",
                 borderRadius: "50%",
                 width: "36px",
@@ -91,7 +91,7 @@ const QuantityEditor = ({
               style={{
                 margin: "0 10px",
                 cursor: "pointer",
-                color: "#F5E8C7",
+                color: "#fff",
                 fontSize: "18px",
                 minWidth: "40px",
                 padding: "4px 8px",
@@ -105,7 +105,7 @@ const QuantityEditor = ({
               onClick={() => updateQuantity(item.id, item.quantity + 1)}
               style={{
                 background: "transparent",
-                color: "#F5E8C7",
+                color: "#fff",
                 border: "none",
                 borderRadius: "50%",
                 width: "36px",
@@ -123,19 +123,7 @@ const QuantityEditor = ({
         )}
       </div>
       <div style={{ minHeight: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        {isBelowMinimum && (
-          <div style={{ 
-            display: "flex", 
-            alignItems: "center", 
-            gap: "4px",
-            color: "#ff4d4f"
-          }}>
-            <FaInfoCircle style={{ fontSize: '14px' }} />
-            <span style={{ fontSize: "12px" }}>
-              Min: {item.minQuantity}
-            </span>
-          </div>
-        )}
+        {/* Removed min warning display */}
       </div>
     </div>
   );
