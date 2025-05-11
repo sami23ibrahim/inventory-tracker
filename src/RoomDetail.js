@@ -1,5 +1,5 @@
 /* eslint-disable no-use-before-define */
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { db } from "./firebase";
 import { updateDoc, doc } from "firebase/firestore";
@@ -17,7 +17,6 @@ import RoomItemGrid from "./roomDetail/RoomItemGrid";
 import useRoomItems from "./hooks/useRoomItems";
 import usePinVerification from "./hooks/usePinVerification";
 import useSearch from "./hooks/useSearch";
-import useWebhookHealth from "./hooks/useWebhookHealth";
 
 Modal.setAppElement('#root');
 
@@ -63,14 +62,6 @@ function RoomDetail() {
     addItem
   } = useRoomItems(roomId, db, supabase, DEFAULT_IMAGE_URL);
 
-  const lastKnownQuantities = useRef(new Map());
-  const lastNotifiedQuantity = useRef(new Map());
-
-  const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-  // Use custom hook for webhook health (move above notifySlack)
-  const { webhookHealth, checkWebhookHealth } = useWebhookHealth();
-
   // Use custom hook for PIN logic and room name (move above useEffect)
   const {
     roomName,
@@ -83,55 +74,6 @@ function RoomDetail() {
     handleBackspace,
     fetchRoomName
   } = usePinVerification(roomId, db, navigate);
-
-  const notifySlack = useCallback(async (itemName, roomName, quantity, minQuantity) => {
-    if (isMobileDevice) {
-      console.log('Skipping Slack notification on mobile device');
-      return;
-    }
-    console.log('NOTIFY SLACK: webhookHealth.status is', webhookHealth.status);
-    if (webhookHealth.status === 'unhealthy') {
-      console.error('Skipping notification - Slack webhook is not working:', webhookHealth.error);
-      return;
-    }
-    try {
-      // Always use the Vercel backend for notifications
-      const serverUrl = 'https://inventoryd3z.vercel.app/api/notify-slack';
-      const payload = {
-        itemName,
-        roomName,
-        quantity,
-        minQuantity
-      };
-      console.log('NOTIFY SLACK: About to send notification', serverUrl, payload);
-      const response = await fetch(serverUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload)
-      });
-      console.log('DEBUG: Response status:', response.status);
-      let errorData = null;
-      if (!response.ok) {
-        try {
-          errorData = await response.json();
-        } catch (e) {
-          errorData = { error: 'Failed to parse error response' };
-        }
-        console.error('Slack notification failed:', errorData);
-        if (response.status === 503) {
-          checkWebhookHealth();
-        }
-      } else {
-        const respText = await response.text();
-        console.log('DEBUG: Response text:', respText);
-      }
-    } catch (error) {
-      console.error('Failed to send Slack notification:', error);
-      checkWebhookHealth();
-    }
-  }, [isMobileDevice, webhookHealth, checkWebhookHealth]);
 
   // Use custom hook for search/filter logic
   const {
@@ -181,37 +123,6 @@ function RoomDetail() {
   useEffect(() => {
     fetchRoomName();
   }, [fetchRoomName]);
-
-  useEffect(() => {
-    items.forEach(item => {
-      const lastQuantity = lastKnownQuantities.current.get(item.id);
-      const lastNotified = lastNotifiedQuantity.current.get(item.id);
-
-      // Reset notification state if at or above min
-      if (item.minQuantity !== undefined && item.minQuantity !== null && item.quantity >= item.minQuantity) {
-        lastNotifiedQuantity.current.set(item.id, null);
-      }
-
-      // Notify if:
-      // - Crossing from min or above to below min
-      // - Or, decreasing further below min (and not already notified for this quantity)
-      if (
-        item.minQuantity !== undefined &&
-        item.minQuantity !== null &&
-        item.quantity < item.minQuantity &&
-        item.quantity !== lastNotified &&
-        (
-          (lastQuantity !== undefined && lastQuantity >= item.minQuantity) || // crossing threshold
-          (lastQuantity !== undefined && item.quantity < lastQuantity)        // decreasing further below min
-        )
-      ) {
-        notifySlack(item.name, roomName, item.quantity, item.minQuantity);
-        lastNotifiedQuantity.current.set(item.id, item.quantity);
-      }
-
-      lastKnownQuantities.current.set(item.id, item.quantity);
-    });
-  }, [items, roomName, notifySlack]);
 
   const startEditingQuantity = (itemId) => {
     setEditingItemId(itemId);

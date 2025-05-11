@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, runTransaction } from "firebase/firestore";
 
-export default function useRoomItems(roomId, db, supabase, DEFAULT_IMAGE_URL) {
+export default function useRoomItems(roomId, db, supabase, DEFAULT_IMAGE_URL, roomName) {
   const [items, setItems] = useState([]);
   const [lastQuantity, setLastQuantity] = useState(null);
   const [lastItemId, setLastItemId] = useState(null);
@@ -51,7 +51,8 @@ export default function useRoomItems(roomId, db, supabase, DEFAULT_IMAGE_URL) {
     const itemData = {
       name,
       imageUrl,
-      quantity
+      quantity,
+      lastNotifiedQuantity: quantity
     };
     if (minEnabled) {
       itemData.minQuantity = minValue;
@@ -84,10 +85,33 @@ export default function useRoomItems(roomId, db, supabase, DEFAULT_IMAGE_URL) {
         transaction.update(itemRef, { quantity: finalQuantity });
       });
       setItems(prevItems => prevItems.map(item => item.id === itemId ? { ...item, quantity: newQuantity } : item));
+
+      // Debounce notification logic (3 seconds)
+      if (!window._notifyDebounceTimers) window._notifyDebounceTimers = {};
+      if (window._notifyDebounceTimers[itemId]) {
+        clearTimeout(window._notifyDebounceTimers[itemId]);
+      }
+      const updatedItem = items.find(item => item.id === itemId);
+      window._notifyDebounceTimers[itemId] = setTimeout(async () => {
+        // Always use the roomName passed to the hook
+        const finalRoomName = roomName || updatedItem?.roomName || (typeof window !== 'undefined' && window.__ROOM_NAME__) || "";
+        await fetch('/api/notify-slack', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            itemId,
+            roomId,
+            itemName: updatedItem?.name,
+            roomName: finalRoomName,
+            quantity: newQuantity,
+            minQuantity: updatedItem?.minQuantity
+          })
+        });
+      }, 3000);
     } catch (error) {
       alert('Failed to update quantity. Please try again.');
     }
-  }, [roomId, db, items]);
+  }, [roomId, db, items, roomName]);
 
   // Undo
   const handleUndo = useCallback(async () => {
