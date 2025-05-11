@@ -33,8 +33,8 @@ const RoomItemGrid = ({
         <div style={{ 
           gridColumn: "1/-1", 
           textAlign: "center", 
-          color: "#F5E8C7", 
-          fontSize: "22px", 
+          color: "#fff", 
+          fontSize: "32px", 
           marginTop: "40px",
           padding: "20px"
         }}>

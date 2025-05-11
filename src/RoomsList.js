@@ -10,6 +10,9 @@ import EditRoomModal from "./roomsList/EditRoomModal";
 import ReportModal from "./roomsList/ReportModal";
 import SearchBar from "./roomDetail/SearchBar";
 import useSearch from "./hooks/useSearch";
+import "./RoomsList.css";
+import Lottie from "lottie-react";
+import loadingAnimation from "./loading3.json";
 
 Modal.setAppElement('#root');
 
@@ -58,6 +61,8 @@ function RoomsList() {
   const [pinError, setPinError] = useState("");
   const superPassword = "3991"; // Hardcoded superpassword
 
+  const [loading, setLoading] = useState(false);
+
   // Add click outside handler
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -90,30 +95,26 @@ function RoomsList() {
   };
 
   const handleAddRoom = async () => {
-    console.trace('handleAddRoom called');
-    console.log('newRoomName:', newRoomName);
-    console.log('newRoomImage:', newRoomImage);
-    if (newRoomName.trim() === "" || !newRoomImage) {
-      alert("Please enter a room name and select an image.");
+    if (newRoomName.trim() === "") {
+      alert("Please enter a shelf name.");
       return;
     }
-
+    setLoading(true);
     try {
       await addRoom({
         name: newRoomName,
         image: newRoomImage,
         pin: newRoomPin.length === 4 ? newRoomPin : ""
       });
-      console.log('addRoom finished');
       setNewRoomName("");
       setNewRoomImage(null);
       setNewRoomPreview(null);
       setNewRoomPin("");
       setIsAddModalOpen(false);
     } catch (error) {
-      console.error('Error saving room to Firestore:', error);
       alert('Failed to save room. Please try again.');
     }
+    setTimeout(() => setLoading(false), 2600);
   };
 
   const handleDeleteRoom = async (roomId, roomImageUrl) => {
@@ -183,26 +184,34 @@ function RoomsList() {
   };
 
   return (
-    <div style={{
-      padding: "20px",
-      minHeight: "100vh",
-      background: "#d5e7e2"
-    }}>
+    <div className="main-bg" style={{ padding: "10px", minHeight: "100vh", position: 'relative' }}>
+      {loading && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          background: 'rgba(255,255,255,0.4)',
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          pointerEvents: 'all',
+        }}>
+          <Lottie animationData={loadingAnimation} loop={true} style={{ width: 160, height: 160 }} />
+        </div>
+      )}
       <h2 style={{ 
         fontFamily: "'Baloo 2', Arial, sans-serif",
-        fontSize: "50px", 
+        fontSize: "45px", 
         fontWeight: 900,
         color: "#fff",
-        marginBottom: "30px", 
+        marginBottom: "20px", 
         textAlign: "center", 
-        letterSpacing: "0.04em",
-        lineHeight: 1.1,
-        textShadow: `
-          0 2px 0 #b0b0b0,
-          0 4px 0 #a3c5e0,
-          0 6px 8px rgba(163,197,224,0.35),
-          0 8px 16px #a3c5e0
-        `
+        letterSpacing: "0.03em",
+        lineHeight: 1.0,
+      
       }}>
         Die Drei Zahnärzte
       </h2>

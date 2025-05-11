@@ -1,0 +1,15 @@
+.main-bg {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #7ecbff 0%, #b6e0fe 60%);
+  font-family: 'Inter', 'Roboto', Arial, sans-serif;
+  color: #fff;
+}
+
+.frosted-card {
+  background: rgba(255, 255, 255, 0.13);
+  border-radius: 24px;
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
+  padding: 28px 18px;
+  margin: 24px 0;
+} 

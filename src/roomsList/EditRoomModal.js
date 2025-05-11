@@ -61,7 +61,7 @@ const EditRoomModal = ({
         }
       }}
     >
-      <h2 style={{ fontSize: "32px", marginBottom: "20px", color: "#fff", textAlign: "center" }}>Edit Room</h2>
+      <h2 style={{ fontSize: "32px", marginBottom: "20px", color: "#fff", textAlign: "center" }}>Edit Shelf</h2>
       <input
         type="text"
         value={editRoomName}

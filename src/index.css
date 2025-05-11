@@ -7,7 +7,7 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: #f1dcb6;
+  background: linear-gradient(180deg, #7ecbff 0%, #b6e0fe 60%);
 }
 
 code {

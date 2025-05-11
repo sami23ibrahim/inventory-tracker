@@ -17,6 +17,8 @@ import RoomItemGrid from "./roomDetail/RoomItemGrid";
 import useRoomItems from "./hooks/useRoomItems";
 import usePinVerification from "./hooks/usePinVerification";
 import useSearch from "./hooks/useSearch";
+import Lottie from "lottie-react";
+import loadingAnimation from "./loading3.json";
 
 Modal.setAppElement('#root');
 
@@ -52,16 +54,6 @@ function RoomDetail() {
   // Add a default image URL
   const DEFAULT_IMAGE_URL = "https://placehold.co/300x150?text=No+Image";
 
-  // Use custom hook for items and undo logic
-  const {
-    items,
-    updateQuantity,
-    handleDeleteItem,
-    handleUndo,
-    showUndo,
-    addItem
-  } = useRoomItems(roomId, db, supabase, DEFAULT_IMAGE_URL);
-
   // Use custom hook for PIN logic and room name (move above useEffect)
   const {
     roomName,
@@ -74,6 +66,16 @@ function RoomDetail() {
     handleBackspace,
     fetchRoomName
   } = usePinVerification(roomId, db, navigate);
+
+  // Use custom hook for items and undo logic
+  const {
+    items,
+    updateQuantity,
+    handleDeleteItem,
+    handleUndo,
+    showUndo,
+    addItem
+  } = useRoomItems(roomId, db, supabase, DEFAULT_IMAGE_URL, roomName);
 
   // Use custom hook for search/filter logic
   const {
@@ -245,12 +247,27 @@ function RoomDetail() {
     };
   }, [openMenuId]);
 
+  const [loading, setLoading] = useState(false);
+
   return (
-    <div style={{
-      padding: "20px",
-      minHeight: "100vh",
-      background: "#d5e7e2"
-    }}>
+    <div className="main-bg" style={{ padding: "20px", minHeight: "100vh", position: 'relative' }}>
+      {loading && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          background: 'rgba(255,255,255,0.4)',
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          pointerEvents: 'all',
+        }}>
+          <Lottie animationData={loadingAnimation} loop={true} style={{ width: 160, height: 160 }} />
+        </div>
+      )}
       {isPinVerified && (
         <>
           {/* Sticky Home Button */}
@@ -392,26 +409,32 @@ function RoomDetail() {
             setNewItemMinEnabled={setNewItemMinEnabled}
             newItemMinValue={newItemMinValue}
             setNewItemMinValue={setNewItemMinValue}
-
-            handleAddItem={() => {
+            handleAddItem={async () => {
               if (!newItemName.trim()) {
                 alert("Please enter a name.");
                 return;
               }
-              addItem({
-                name: newItemName,
-                image: newItemImage,
-                quantity: newItemQuantity,
-                minEnabled: newItemMinEnabled,
-                minValue: newItemMinValue
-              });
-              setIsModalOpen(false);
-              setNewItemName("");
-              setNewItemImage(null);
-              setNewItemQuantity(0);
-              setNewItemMinEnabled(false);
-              setNewItemMinValue(1);
+              setLoading(true);
+              try {
+                await addItem({
+                  name: newItemName,
+                  image: newItemImage,
+                  quantity: newItemQuantity,
+                  minEnabled: newItemMinEnabled,
+                  minValue: newItemMinValue
+                });
+                setIsModalOpen(false);
+                setNewItemName("");
+                setNewItemImage(null);
+                setNewItemQuantity(0);
+                setNewItemMinEnabled(false);
+                setNewItemMinValue(1);
+              } catch (error) {
+                alert('Failed to add item. Please try again.');
+              }
+              setTimeout(() => setLoading(false), 2500);
             }}
+            loading={loading}
           />
 
           {/* Edit Item Modal */}

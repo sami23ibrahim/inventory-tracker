@@ -14,11 +14,12 @@ const AddItemModal = ({
   setNewItemMinEnabled,
   newItemMinValue,
   setNewItemMinValue,
-  handleAddItem
+  handleAddItem,
+  loading
 }) => (
   <Modal
     isOpen={isOpen}
-    onRequestClose={onRequestClose}
+    onRequestClose={loading ? undefined : onRequestClose}
     contentLabel="Add New Item"
     style={{
       overlay: {
@@ -127,34 +128,36 @@ const AddItemModal = ({
     )}
     <div style={{ marginTop: "20px" }}>
       <button
-        onClick={handleAddItem}
+        onClick={loading ? undefined : handleAddItem}
+        disabled={loading}
         style={{
           fontSize: "18px",
           marginBottom: "20px",
-          backgroundColor: "#fff",
-          color: "#a3c5e0",
+          backgroundColor: loading ? "#eee" : "#fff",
+          color: loading ? "#aaa" : "#a3c5e0",
           border: "none",
           padding: "8px 16px",
           borderRadius: "10px",
-          cursor: "pointer"
+          cursor: loading ? "not-allowed" : "pointer"
         }}
       >
-        <span style={{color: '#a3c5e0', fontWeight: 700}}>Add Item</span>
+        <span style={{color: loading ? '#aaa' : '#a3c5e0', fontWeight: 700}}>Add Item</span>
       </button>
       <button
-        onClick={onRequestClose}
+        onClick={loading ? undefined : onRequestClose}
+        disabled={loading}
         style={{
           fontSize: "18px",
           margin: "20px",
-          backgroundColor: "#fff",
-          color: "#a3c5e0",
+          backgroundColor: loading ? "#eee" : "#fff",
+          color: loading ? "#aaa" : "#a3c5e0",
           border: "none",
           padding: "8px 16px",
           borderRadius: "10px",
-          cursor: "pointer"
+          cursor: loading ? "not-allowed" : "pointer"
         }}
       >
-        <span style={{color: '#a3c5e0', fontWeight: 700}}>Cancel</span>
+        <span style={{color: loading ? '#aaa' : '#a3c5e0', fontWeight: 700}}>Cancel</span>
       </button>
     </div>
   </Modal>

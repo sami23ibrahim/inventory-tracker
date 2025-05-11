@@ -14,13 +14,14 @@ const RoomCard = ({
 }) => (
   <div
     style={{
-      background: isLowStock ? "#f0a3b0" : "#a3c5e0",
-      borderRadius: "12px",
-      border: "2px solid #fff",
-      boxShadow: "0 8px 32px 0 rgba(255,255,255,0.7), 0 2px 8px 0 rgba(255,255,255,0.45), 0 0 0 2px #fff2, 0 0 0 4px #ffd70022",
+      background: "rgba(8, 8, 8, 0.05)",
+      borderRadius: "24px",
+      border: isLowStock ? "1.5px solid #f0a3b0" : "1.5px solid rgba(204, 195, 195, 0.1)",
+      backdropFilter: "blur(32px)",
+      WebkitBackdropFilter: "blur(32px)",
       overflow: "hidden",
       position: "relative",
-      transition: "transform 0.3s ease, box-shadow 0.3s ease",
+      transition: "transform 0.3s ease, box-shadow 0.3s ease, border 0.3s",
       cursor: "pointer",
       minHeight: "260px",
       maxHeight: "260px",
@@ -31,14 +32,7 @@ const RoomCard = ({
       maxWidth: "290px",
       margin: "0 auto"
     }}
-    onMouseEnter={e => {
-      e.currentTarget.style.transform = "translateY(-8px)";
-      e.currentTarget.style.boxShadow = "0 8px 20px rgba(255,255,255,0.5)";
-    }}
-    onMouseLeave={e => {
-      e.currentTarget.style.transform = "translateY(0)";
-      e.currentTarget.style.boxShadow = "0 2px 8px rgba(255,255,255,0.7)";
-    }}
+   
   >
     <Link to={`/room/${room.id}`}>
       <img
@@ -46,9 +40,9 @@ const RoomCard = ({
         alt={room.name}
         style={{
           width: "93%",
-          height: "160px",
+          height: "180px",
           objectFit: "cover",
-          borderRadius: "8px",
+          borderRadius: "24px",
           margin: "10px auto 0 auto",
           display: "block"
         }}
@@ -113,7 +107,7 @@ const RoomCard = ({
         <button onClick={() => onReport(room)} style={{ width: "100%", padding: "16px", background: "#a3c5e0", color: "#fff", fontSize: '20px', border: "none", textAlign: "left", cursor: "pointer" }}>📄 Report</button>
       </div>
     )}
-    <div style={{ padding: "0px 10px 10px 10px", textAlign: "center", fontWeight: "bold", color: "#fff", fontSize: "28px", flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <div style={{ padding: "0px 10px 10px 10px", textAlign: "center", fontWeight: "bold", color: isLowStock ? "#fff" : "#fff", fontSize: "28px", flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
       {room.name}
     </div>
     {children}

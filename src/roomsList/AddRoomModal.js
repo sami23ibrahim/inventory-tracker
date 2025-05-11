@@ -54,12 +54,12 @@ const AddRoomModal = ({
         }
       }}
     >
-      <h2 style={{ fontSize: "32px", marginBottom: "20px", color: "#fff", textAlign: "center" }}>Add New Room</h2>
+      <h2 style={{ fontSize: "32px", marginBottom: "20px", color: "#fff", textAlign: "center" }}>Add New Shelf</h2>
       <input
         type="text"
         value={newRoomName}
         onChange={(e) => setNewRoomName(e.target.value)}
-        placeholder="Room Name"
+        placeholder="Shelf Name"
         style={{
           marginTop: "10px",
           width: "70%",
@@ -67,7 +67,7 @@ const AddRoomModal = ({
           borderRadius: "10px",
           border: "1px solid #fff",
           backgroundColor: "#fff",
-          color: "white",
+          color: "black",
           fontSize: "16px",
           textAlign: "center",
           outline: "none"
@@ -101,7 +101,7 @@ const AddRoomModal = ({
           }}
           style={{ marginRight: "8px" }}
         />
-        Set PIN
+        Lock Shelf
       </label>
       {newRoomPinEnabled && (
         <input
@@ -137,7 +137,7 @@ const AddRoomModal = ({
             cursor: "pointer"
           }}
         >
-          <span style={{color: '#a3c5e0', fontWeight: 700}}>Add Room</span>
+          <span style={{color: '#a3c5e0', fontWeight: 700}}> Add Shelf </span>
         </button>
         <button
           onClick={onRequestClose}

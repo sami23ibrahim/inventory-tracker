@@ -30,24 +30,27 @@ export default function useRooms(db, supabase) {
 
   // Add room
   const addRoom = useCallback(async ({ name, image, pin }) => {
-    if (!name || !image) {
-      alert("Please enter a room name and select an image.");
+    if (!name) {
+      alert("Please enter a shelf name.");
       return;
     }
-    const fileExt = image.name.split('.').pop();
-    const fileName = `${Date.now()}.${fileExt}`;
-    const filePath = `roomImages/${fileName}`;
-    const { error: uploadError } = await supabase.storage
-      .from('images')
-      .upload(filePath, image);
-    if (uploadError) {
-      alert('Image upload failed!');
-      return;
+    let imageUrl = "https://placehold.co/300x150?text=No+Image";
+    if (image) {
+      const fileExt = image.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      const filePath = `roomImages/${fileName}`;
+      const { error: uploadError } = await supabase.storage
+        .from('images')
+        .upload(filePath, image);
+      if (uploadError) {
+        alert('Image upload failed!');
+        return;
+      }
+      const { data } = supabase.storage
+        .from('images')
+        .getPublicUrl(filePath);
+      imageUrl = data.publicUrl;
     }
-    const { data } = supabase.storage
-      .from('images')
-      .getPublicUrl(filePath);
-    const imageUrl = data.publicUrl;
     await addDoc(collection(db, "rooms"), {
       name,
       imageUrl,
@@ -123,7 +126,12 @@ export default function useRooms(db, supabase) {
       } catch (error) {}
     }
 
-    // 4. Delete the room and its items from Firestore
+    // 4. Delete all items in the room's items subcollection
+    for (const itemDoc of itemSnapshot.docs) {
+      await deleteDoc(itemDoc.ref);
+    }
+
+    // 5. Delete the room document itself
     const roomRef = doc(db, "rooms", roomId);
     await deleteDoc(roomRef);
     fetchRoomsAndStock();

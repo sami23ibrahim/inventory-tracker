@@ -11,18 +11,13 @@ const RoomHeader = ({ roomName }) => (
   }}>
     <span style={{
       fontFamily: "'Baloo 2', Arial, sans-serif",
-      fontSize: "55px",
+      fontSize: "45px",
       fontWeight: 900,
       color: "#fff",
-      letterSpacing: "0.04em",
+      letterSpacing: "0.03em",
       textAlign: "center",
       lineHeight: 1.1,
-      textShadow: `
-        0 2px 0 #b0b0b0,
-        0 4px 0 #a3c5e0,
-        0 6px 8px rgba(163,197,224,0.35),
-        0 8px 16px #a3c5e0
-      `
+     
     }}>
       {roomName}
     </span>

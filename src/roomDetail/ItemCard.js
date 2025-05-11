@@ -25,9 +25,11 @@ const ItemCard = ({
     <div
       id={`item-${item.id}`}
       style={{
-        background: isBelowMinimum ? "#f0a3b0" : "#a3c5e0",
-        borderRadius: "12px",
-        boxShadow: "0 8px 32px 0 rgba(255,255,255,0.7), 0 2px 8px 0 rgba(255,255,255,0.45), 0 0 0 2px #fff2, 0 0 0 4px #ffd70022",
+        background: "rgba(8, 8, 8, 0.05)",
+        borderRadius: "24px",
+        border: isBelowMinimum ? "2.5px solid #f0a3b0" : "1.5px solid rgba(204, 195, 195, 0.1)",
+        backdropFilter: "blur(32px)",
+        WebkitBackdropFilter: "blur(32px)",
         overflow: "hidden",
         position: "relative",
         padding: "6px",
@@ -47,7 +49,7 @@ const ItemCard = ({
             width: "100%",
             height: "130px",
             objectFit: "cover",
-            borderRadius: "8px",
+            borderRadius: "24px",
             marginBottom: "4px"
           }}
         />
@@ -64,7 +66,6 @@ const ItemCard = ({
             borderRadius: "50%",
             padding: "12px",
             cursor: "pointer",
-            color: "#FFD700",
             fontSize: "24px",
             width: "48px",
             height: "48px",
